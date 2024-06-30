@@ -172,24 +172,49 @@ We need to store some state on the backend.
 
 ### WIP: API endpoints for each step
 
-> This needs to be fleshed out more.
-> Alice should probably get another secret, that Bob should not get, to be able to access the result.
-> I would like to incorporate compatibility for groups or multiple two-way exchanges from the start, even if not truly implementing it yet. 
+The following describes the API calls that are made in a successful 1-to-1 exchange between Alice and Bob.
 
-- 1. `GET /` returns the frontend.
-- 4. `POST /api/exchanges/` to start a new exchange. The request contains the selected attributes and the known attribute of Bob, and any other preferences. The response contains at least a random session ID. Optionally, it can also contain a signed Yivi disclosure request JWT for Alice.
+```mermaid
+sequenceDiagram
+    participant yivi as Yivi server
+    participant A as Alice
+    participant B as Bob
+    participant server as Server
 
-Alice now does a disclosure session.
+    A ->>+ server: POST /exchanges/start/ (Configuration of requested attributes)
+    server ->>- A: Exchange ID, secret, disclosure request JWT A
 
-- 7. `POST /api/exchanges/:session_id/start/` to submit Alice's disclosure result JWT. The server verifies it and returns with a URL that can be sent to Bob.
+    A ->>+ yivi: Disclose (disclosure request JWT A)
+    yivi ->>- A: Result JWT A
 
-- 11. `GET /exchanges/#session_id=...` returns the frontend. The frontend parses the session ID.
+    A ->>+ server: POST /exchanges/:exchange_id/submit/ (secret, Result JWT A)
+    note left of server: Server verifies JWT A and saves it.
+    server ->>- A: OK
 
-- 11. `GET /api/exchanges/:session_id/` returns basic information about the exchange: the requested attributes, and the values of the known attribute about Bob and Alice. It can also contain a signed Yivi disclosure request JWT for Bob.
 
-Bob now does a disclosure session.
+    A ->> B: URL with exchange ID
 
-- 13. `POST /api/exchanges/:session_id/respond/` to submit Bob's disclosure result JWT. The server verifies it and returns with the disclosed attributes of Alice.
 
-At this point, we need another secret that Alice's client keeps, to be able to access the result. This should be returned from `POST /api/exchanges/:session_id/start/`.
+    B ->>+ server: GET /exchanges/:exchange_id/
+    server ->>- B: Requested attributes, public attributes of Alice, disclosure request JWT B
 
+    B ->>+ yivi: Disclose (disclosure request JWT B)
+    yivi ->>- B: Result JWT B
+
+    B ->>+ server: POST /exchanges/:exchange_id/respond/ (Result JWT B)
+    note left of server: Server verifies JWT B and saves it.
+    server ->>- B: Disclosed attributes of Alice 
+
+    A ->>+ server: GET /exchanges/:exchange_id/result/ (secret)
+    server ->>- A: Disclosed attributes of Bob
+
+```
+
+This design works exactly the same in a 1-to-many setting where Alice performs 
+1-to-1 exchanges with multiple recipients, who all receive the same exchange ID.
+
+
+In a many-to-many setting, where Alice begins a group, such that everyone sees everyone's attributes,
+the only small difference is that, after a recipient responds, the server would have to also give the
+'secret' (which normally is only given to the initiator) to Bob. Then, Bob can also access the
+result of the exchange with 'GET /exchanges/:exchange_id/result/'.
