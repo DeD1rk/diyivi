@@ -1,0 +1,5 @@
+
+services:
+  irma-server:
+    image: ghcr.io/privacybydesign/irma:latest
+  
