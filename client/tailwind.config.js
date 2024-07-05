@@ -23,6 +23,9 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"Open Sans"', "Roboto", "Tahoma", "Arial", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +60,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "yivi-anthracite": "#484747",
+        "yivi-linkblue": "#00508a",
+        "yivi-green": "#00973a",
+        "yivi-lightblue": "#dcecf5",
+        "yivi-red": "#e12747",
+        "yivi-grey": "#eae5e2",
       },
       borderRadius: {
       	xl: "calc(var(--radius) + 4px)",
