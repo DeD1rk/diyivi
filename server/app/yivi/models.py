@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal, Self
 
@@ -131,6 +132,7 @@ class DisclosedAttribute(BaseModel):
     status: str
     rawvalue: str | None
     value: TranslatedString
+    issuancetime: str
 
     def satisfies(self, value: Attribute | AttributeValue) -> bool:
         if isinstance(value, AttributeValue):
@@ -140,3 +142,73 @@ class DisclosedAttribute(BaseModel):
                 or (value.not_null is False and self.rawvalue is None)
             )
         return self.id == value
+
+
+class SessionStatus(StrEnum):
+    """Status of an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/messages.go#L217-L222
+    """
+
+    INITIALIZED = "INITIALIZED"
+    PAIRING = "PAIRING"
+    CONNECTED = "CONNECTED"
+    CANCELLED = "CANCELLED"
+    DONE = "DONE"
+    TIMEOUT = "TIMEOUT"
+
+
+class ProofStatus(StrEnum):
+    """Status of a proof in an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L23-L28
+    """
+
+    VALID = "VALID"
+    INVALID = "INVALID"
+    INVALID_TIMESTAMP = "INVALID_TIMESTAMP"
+    UNMATCHED_REQUEST = "UNMATCHED_REQUEST"
+    MISSING_ATTRIBUTES = "MISSING_ATTRIBUTES"
+    EXPIRED = "EXPIRED"
+
+
+class AttributeProofStatus(StrEnum):
+    """Status of a single attribute in an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L30-L32
+    """
+
+    PRESENT = "PRESENT"
+    EXTRA = "EXTRA"
+    NULL = "NULL"
+
+
+class BaseSessionResultJWT(BaseModel):
+    iss: str = Field(
+        description="Name of the current irma server as defined in its configuration.",
+    )
+    iat: str = Field(
+        description="Unix timestamp indicating when this JWT was created",
+    )
+    sub: Literal["disclosing_result", "signing_result", "issuing_result"]
+
+    type: Literal["disclosing", "signing", "issuing"]
+    status: SessionStatus
+    token: str
+
+
+class DisclosureSessionResultJWT(BaseSessionResultJWT):
+    sub: Literal["disclosing_result"] = "disclosing_result"
+    type: Literal["disclosing"] = "disclosing"
+
+    proof_status: ProofStatus = Field(
+        serialization_alias="proofStatus",
+    )
+
+    disclosed: list[list[DisclosedAttribute]] | None
+
+    @property
+    def is_successful(self) -> bool:
+        return (
+            self.status == SessionStatus.DONE and self.proof_status == ProofStatus.VALID
+        )
