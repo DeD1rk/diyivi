@@ -66,6 +66,7 @@ class DisclosureRequest(BaseModel):
     client_return_url: str | None = Field(
         description="URL to which the device with the Yivi app should return after the session.",
         serialization_alias="clientReturnUrl",
+        default=None,
     )
 
     augment_return_url: bool | None = Field(
@@ -110,10 +111,17 @@ class ExtendedDisclosureRequest(BaseModel):
 
     request: DisclosureRequest
 
+
+class DisclosureRequestJWT(BaseModel):
+    sub: Literal["verification_request"] = "verification_request"
+    iss: str = settings.irma.session_request_issuer_id
+    iat: datetime = Field(default_factory=datetime.now)
+    sprequest: ExtendedDisclosureRequest
+
     def signed_jwt(self) -> str:
         return jwt.encode(
-            self.model_dump(),
-            settings.irma.secret_key,
+            self.model_dump(exclude_none=True, by_alias=True),
+            settings.irma.session_request_secret_key,
             algorithm="HS256",
         )
 
