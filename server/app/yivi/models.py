@@ -1,11 +1,14 @@
+import logging
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, Self, Sequence
 
 import jwt
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 Attribute = Annotated[
     str,
@@ -21,6 +24,45 @@ Attribute = Annotated[
 TranslatedString = Annotated[
     dict[str, str], Field(examples=[{"en": "Hello world!", "nl": "Hallo wereld!"}])
 ]
+
+
+class SessionStatus(StrEnum):
+    """Status of an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/messages.go#L217-L222
+    """
+
+    INITIALIZED = "INITIALIZED"
+    PAIRING = "PAIRING"
+    CONNECTED = "CONNECTED"
+    CANCELLED = "CANCELLED"
+    DONE = "DONE"
+    TIMEOUT = "TIMEOUT"
+
+
+class ProofStatus(StrEnum):
+    """Status of a proof in an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L23-L28
+    """
+
+    VALID = "VALID"
+    INVALID = "INVALID"
+    INVALID_TIMESTAMP = "INVALID_TIMESTAMP"
+    UNMATCHED_REQUEST = "UNMATCHED_REQUEST"
+    MISSING_ATTRIBUTES = "MISSING_ATTRIBUTES"
+    EXPIRED = "EXPIRED"
+
+
+class AttributeProofStatus(StrEnum):
+    """Status of a single attribute in an IRMA session.
+
+    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L30-L32
+    """
+
+    PRESENT = "PRESENT"
+    EXTRA = "EXTRA"
+    NULL = "NULL"
 
 
 class AttributeValue(BaseModel):
@@ -129,7 +171,7 @@ class DisclosureRequestJWT(BaseModel):
 
 class DisclosedAttribute(BaseModel):
     id: Attribute
-    status: str
+    status: AttributeProofStatus
     rawvalue: str | None
     value: TranslatedString
     issuancetime: str
@@ -138,49 +180,12 @@ class DisclosedAttribute(BaseModel):
         if isinstance(value, AttributeValue):
             return self.id == value.type and (
                 (value.not_null is None and self.rawvalue == value.value)
-                or (value.not_null is True and self.rawvalue is not None)
-                or (value.not_null is False and self.rawvalue is None)
+                or (value.not_null is True and self.status != AttributeProofStatus.NULL)
+                or (
+                    value.not_null is False and self.status == AttributeProofStatus.NULL
+                )
             )
         return self.id == value
-
-
-class SessionStatus(StrEnum):
-    """Status of an IRMA session.
-
-    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/messages.go#L217-L222
-    """
-
-    INITIALIZED = "INITIALIZED"
-    PAIRING = "PAIRING"
-    CONNECTED = "CONNECTED"
-    CANCELLED = "CANCELLED"
-    DONE = "DONE"
-    TIMEOUT = "TIMEOUT"
-
-
-class ProofStatus(StrEnum):
-    """Status of a proof in an IRMA session.
-
-    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L23-L28
-    """
-
-    VALID = "VALID"
-    INVALID = "INVALID"
-    INVALID_TIMESTAMP = "INVALID_TIMESTAMP"
-    UNMATCHED_REQUEST = "UNMATCHED_REQUEST"
-    MISSING_ATTRIBUTES = "MISSING_ATTRIBUTES"
-    EXPIRED = "EXPIRED"
-
-
-class AttributeProofStatus(StrEnum):
-    """Status of a single attribute in an IRMA session.
-
-    See: https://github.com/privacybydesign/irmago/blob/v0.15.2/verify.go#L30-L32
-    """
-
-    PRESENT = "PRESENT"
-    EXTRA = "EXTRA"
-    NULL = "NULL"
 
 
 class BaseSessionResultJWT(BaseModel):
@@ -205,10 +210,76 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
         serialization_alias="proofStatus",
     )
 
-    disclosed: list[list[DisclosedAttribute]] | None
+    disclosed: list[list[DisclosedAttribute]] = Field(default_factory=list)
 
     @property
     def is_successful(self) -> bool:
         return (
-            self.status == SessionStatus.DONE and self.proof_status == ProofStatus.VALID
+            self.disclosed is not None
+            and self.status == SessionStatus.DONE
+            and self.proof_status == ProofStatus.VALID
         )
+
+    def satisfies_condiscon(
+        self, condiscon: Sequence[Sequence[Sequence[Attribute | AttributeValue]]]
+    ) -> bool:
+        """Return whether this disclosure result satisfies the given ConDisCon.
+
+        This result needs to be successful and the disclosed attributes need to match.
+        That is, a disclosure should have the same number of elements as the number of
+        disjunctions in the ConDisCon, and each disjunction should be satisfied by the
+        disclosed attributes in the element at the same index.
+        """
+        if (
+            self.disclosed is None
+            or len(self.disclosed) != len(condiscon)
+            or not self.is_successful
+        ):
+            return False
+
+        for disjunction, disclosed in zip(condiscon, self.disclosed):
+            if not satisfies_disjunction(disjunction, disclosed):
+                return False
+
+        return True
+
+    @classmethod
+    def parse_jwt(cls, raw_result: str) -> Self:
+        """Parse and verify a disclosure session result JWT.
+
+        :raises jwt.InvalidTokenError: If the input is not a valid JWT.
+        :raises pydantic.ValidationError: If the input is not a valid disclosure session result.
+        """
+        try:
+            result_dict = jwt.decode(
+                raw_result,
+                settings.irma.server_public_key,
+                algorithms=["RS256"],
+            )
+            return cls.model_validate(result_dict)
+        except jwt.InvalidTokenError:
+            logger.debug("Invalid JWT", exc_info=True)
+            raise
+        except ValidationError:
+            logger.debug("Invalid disclosure result in JWT", exc_info=True)
+            raise
+
+
+def satisfies_disjunction(
+    disjunction: Sequence[Sequence[Attribute | AttributeValue]],
+    disclosed: Sequence[DisclosedAttribute],
+) -> bool:
+    return any(
+        satisfies_conjunction(conjunction, disclosed) for conjunction in disjunction
+    )
+
+
+def satisfies_conjunction(
+    conjunction: Sequence[Attribute | AttributeValue],
+    disclosed: Sequence[DisclosedAttribute],
+) -> bool:
+    for required_attribute in conjunction:
+        if any(attribute.satisfies(required_attribute) for attribute in disclosed):
+            continue
+        return False
+    return True
