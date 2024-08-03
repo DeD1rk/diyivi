@@ -54,6 +54,13 @@ class Exchange(BaseModel):
 class ExchangeReply(BaseModel):
     """Reply to an exchange as saved in the backend."""
 
+    id: str = Field(
+        min_length=16,
+        max_length=16,
+        pattern="^[0-9a-f]{16}$",
+        default_factory=lambda: secrets.token_hex(8),
+    )
+
     exchange_id: str = Field(
         min_length=16,
         max_length=16,
