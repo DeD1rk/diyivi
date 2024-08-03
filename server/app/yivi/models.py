@@ -67,7 +67,7 @@ class AttributeProofStatus(StrEnum):
 
 class AttributeValue(BaseModel):
     type: Attribute
-    value: str | None
+    value: str | None = None
     not_null: bool | None = Field(serialization_alias="notNull", default=None)
 
     @model_validator(mode="after")
@@ -174,7 +174,7 @@ class DisclosedAttribute(BaseModel):
     status: AttributeProofStatus
     rawvalue: str | None
     value: TranslatedString
-    issuancetime: str
+    issuancetime: int
 
     def satisfies(self, value: Attribute | AttributeValue) -> bool:
         if isinstance(value, AttributeValue):
