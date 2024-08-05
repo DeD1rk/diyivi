@@ -2,14 +2,14 @@ import json
 
 from fastapi import FastAPI
 
-# from app.exchanges.api import router as exchanges_router
+from app.exchanges.api import router as exchanges_router
 
 app = FastAPI(
     title="DIYivi",
     summary="Backend for DIYivi, a DIY tool for exchanging Yivi attributes.",
 )
 
-# app.include_router(exchanges_router, prefix="/exchanges")
+app.include_router(exchanges_router, prefix="/exchanges")
 
 
 def output_schema():
