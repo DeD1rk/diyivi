@@ -98,3 +98,22 @@ class CreateExchangeRequest(BaseModel):
         """,
     )
 
+
+class InitiatorExchangeResponse(BaseModel):
+    """Information about a newly created exchange for the initiator."""
+
+    id: str = Field(
+        min_length=16,
+        max_length=16,
+        pattern="^[0-9a-f]{16}$",
+    )
+    initiator_secret: str = Field(
+        min_length=32,
+        max_length=32,
+        pattern="^[0-9a-f]{32}$",
+    )
+    request_jwt: str = Field(
+        description="JWT containing a disclosure request for the initiator.",
+    )
+
+

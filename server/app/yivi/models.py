@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Annotated, Literal, Self, Sequence
 
@@ -68,7 +68,7 @@ class AttributeProofStatus(StrEnum):
 class AttributeValue(BaseModel):
     type: Attribute
     value: str | None = None
-    not_null: bool | None = Field(serialization_alias="notNull", default=None)
+    not_null: bool | None = Field(alias="notNull", default=None)
 
     @model_validator(mode="after")
     def check_value_or_not_null(self) -> Self:
@@ -86,7 +86,7 @@ class DisclosureRequest(BaseModel):
     """
 
     context: Literal["https://irma.app/ld/request/disclosure/v2"] = Field(
-        serialization_alias="@context",
+        alias="@context",
         default="https://irma.app/ld/request/disclosure/v2",
     )
 
@@ -108,13 +108,13 @@ class DisclosureRequest(BaseModel):
 
     client_return_url: str | None = Field(
         description="URL to which the device with the Yivi app should return after the session.",
-        serialization_alias="clientReturnUrl",
+        alias="clientReturnUrl",
         default=None,
     )
 
     augment_return_url: bool | None = Field(
         description="Whether to augment the client return URL with the session token.",
-        serialization_alias="augmentReturnUrl",
+        alias="augmentReturnUrl",
         default=None,
     )
 
@@ -147,7 +147,7 @@ class ExtendedDisclosureRequest(BaseModel):
     )
 
     callback_url: str | None = Field(
-        serialization_alias="callbackUrl",
+        alias="callbackUrl",
         description="URL to which the IRMA server should post the session result.",
         default=None,
     )
@@ -158,7 +158,7 @@ class ExtendedDisclosureRequest(BaseModel):
 class DisclosureRequestJWT(BaseModel):
     sub: Literal["verification_request"] = "verification_request"
     iss: str = settings.irma.session_request_issuer_id
-    iat: datetime = Field(default_factory=datetime.now)
+    iat: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     sprequest: ExtendedDisclosureRequest
 
     def signed_jwt(self) -> str:
@@ -207,7 +207,7 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
     type: Literal["disclosing"] = "disclosing"
 
     proof_status: ProofStatus = Field(
-        serialization_alias="proofStatus",
+        alias="proofStatus",
     )
 
     disclosed: list[list[DisclosedAttribute]] = Field(default_factory=list)

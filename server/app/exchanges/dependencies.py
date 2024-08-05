@@ -33,16 +33,16 @@ class Storage:
             del self._exchange_replies[id]
 
 
-storage = Storage()
+_storage = Storage()
 
 
 async def get_storage():
-    yield storage
+    yield _storage
 
 
 async def get_exchange(
     storage: Annotated[Storage, Depends(get_storage)],
-    exchange_id: Annotated[str, Path(regex="^[0-9a-f]{16}$")],
+    exchange_id: Annotated[str, Path(pattern="^[0-9a-f]{16}$")],
 ):
     exchange = await storage.get_exchange(exchange_id)
     if exchange is None:

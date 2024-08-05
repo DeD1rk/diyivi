@@ -39,10 +39,10 @@ def test_disclosed_attributes_satisfies():
     )
 
     assert disclosed_housenumber.satisfies(
-        AttributeValue(type="pbdf.gemeente.address.houseNumber", not_null=True)
+        AttributeValue(type="pbdf.gemeente.address.houseNumber", notNull=True)
     )
     assert not disclosed_housenumber.satisfies(
-        AttributeValue(type="pbdf.gemeente.address.houseNumber", not_null=False)
+        AttributeValue(type="pbdf.gemeente.address.houseNumber", notNull=False)
     )
 
 
@@ -108,7 +108,7 @@ def test_disclosure_result_satisfies():
         "type": "disclosing",
         "status": SessionStatus.DONE,
         "token": "1234567890",
-        "proof_status": ProofStatus.VALID,
+        "proofStatus": ProofStatus.VALID,
     }
 
     assert DisclosureSessionResultJWT(
@@ -180,7 +180,7 @@ def test_disclosure_result_satisfies():
     ), "`disclosed` elements must match request's disjunctions"
 
     assert not DisclosureSessionResultJWT(
-        **{**valid_result_base_fields, "proof_status": ProofStatus.EXPIRED},
+        **{**valid_result_base_fields, "proofStatus": ProofStatus.EXPIRED},
         disclosed=[
             [housenumber, street],
             [city],
