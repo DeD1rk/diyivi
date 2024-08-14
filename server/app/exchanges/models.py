@@ -117,3 +117,11 @@ class InitiatorExchangeResponse(BaseModel):
     )
 
 
+class RecipientExchangeResponse(BaseModel):
+    """Information about an exchange for a recipient."""
+
+    attributes: list[list[list[Attribute]]]
+    public_initiator_attribute_values: list[DisclosedAttribute]
+    request_jwt: str = Field(
+        description="JWT containing a disclosure request for the recipient.",
+    )

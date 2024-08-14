@@ -123,6 +123,27 @@ async def get_exchange_info(
     exchange: Annotated[Exchange, Depends(get_exchange)],
 ):
     """Get information about an exchange, allowing a recipient to decide to respond."""
+    if (
+        exchange.public_initiator_attribute_values is None
+        or exchange.initiator_attribute_values is None
+    ):
+        raise HTTPException(status_code=404, detail="Exchange not found")
+
+    disclosure_request = DisclosureRequestJWT(
+        sprequest=ExtendedDisclosureRequest(
+            request=DisclosureRequest(
+                disclose=exchange.attributes,
+                clientReturnUrl=f"{settings.base_url}/exchanges/{exchange.id}/",
+                augmentReturnUrl=True,
+            ),
+        ),
+    ).signed_jwt()
+
+    return RecipientExchangeResponse(
+        attributes=exchange.attributes,
+        public_initiator_attribute_values=exchange.public_initiator_attribute_values,
+        request_jwt=disclosure_request,
+    )
 
 
 @router.post(
