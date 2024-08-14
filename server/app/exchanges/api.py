@@ -4,6 +4,7 @@ import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import ValidationError
 
+from app.config import settings
 from app.exchanges.dependencies import Storage, get_exchange, get_storage
 from app.exchanges.models import (
     CreateExchangeRequest,
@@ -55,7 +56,7 @@ async def create(
                         "nl": "Bekend bij de ontvanger",
                     }
                 },
-                clientReturnUrl=f"https://diyivi.app/exchanges/{exchange.id}/",
+                clientReturnUrl=f"{settings.base_url}/exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
         ),
