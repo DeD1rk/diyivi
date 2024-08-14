@@ -83,21 +83,21 @@ async def start(
 ):
     """Start an exchange by submitting the session result JWT of the initiator's disclosure."""
     if exchange.initiator_secret != initiator_secret:
-        return HTTPException(status_code=400, detail="Incorrect initiator secret")
+        raise HTTPException(status_code=400, detail="Incorrect initiator secret")
     if exchange.public_initiator_attribute_values is not None:
-        return HTTPException(status_code=400, detail="Exchange already started")
+        raise HTTPException(status_code=400, detail="Exchange already started")
 
     try:
         result = DisclosureSessionResultJWT.parse_jwt(disclosure_result)
     except jwt.PyJWTError:
-        return HTTPException(status_code=400, detail="Invalid JWT")
+        raise HTTPException(status_code=400, detail="Invalid JWT")
     except ValidationError:
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     if not result.satisfies_condiscon(
         [exchange.public_initiator_attributes] + exchange.attributes,
     ):
-        return HTTPException(status_code=400, detail="Invalid session result")
+        raise HTTPException(status_code=400, detail="Invalid session result")
 
     # Extract the disclosed attributes corresponding to (a) the disjunction for the
     # public initiator attributes and (b) the disjunctions for the other attributes.
