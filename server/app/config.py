@@ -23,7 +23,7 @@ dzGoU63CTCQZrPw/g8vgNXNr65J7XKQBuEzJOh/3opwxHVjjyb77XeWQOTIQxNcP
 
     session_request_secret_key: SecretStr = Field(
         description="Secret key to use for signing irma session request JWTs.",
-        default="unsafe_secret_key",
+        default=SecretStr("unsafe_secret_key"),
     )
 
     session_request_issuer_id: str = Field(

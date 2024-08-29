@@ -1,10 +1,10 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Annotated, Literal, Self, Sequence
 
 import jwt
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import BaseModel, Field, PlainSerializer, ValidationError, model_validator
 
 from app.config import settings
 
@@ -24,6 +24,8 @@ Attribute = Annotated[
 TranslatedString = Annotated[
     dict[str, str], Field(examples=[{"en": "Hello world!", "nl": "Hallo wereld!"}])
 ]
+
+Timestamp = Annotated[datetime, PlainSerializer(lambda x: int(x.timestamp()), return_type=int)]
 
 
 class SessionStatus(StrEnum):
@@ -158,13 +160,13 @@ class ExtendedDisclosureRequest(BaseModel):
 class DisclosureRequestJWT(BaseModel):
     sub: Literal["verification_request"] = "verification_request"
     iss: str = settings.irma.session_request_issuer_id
-    iat: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    iat: Timestamp = Field(default_factory=lambda: datetime.now(UTC))
     sprequest: ExtendedDisclosureRequest
 
     def signed_jwt(self) -> str:
         return jwt.encode(
             self.model_dump(exclude_none=True, by_alias=True),
-            settings.irma.session_request_secret_key,
+            settings.irma.session_request_secret_key.get_secret_value(),
             algorithm="HS256",
         )
 
@@ -174,7 +176,7 @@ class DisclosedAttribute(BaseModel):
     status: AttributeProofStatus
     rawvalue: str | None
     value: TranslatedString
-    issuancetime: int
+    issuancetime: Timestamp
 
     def satisfies(self, value: Attribute | AttributeValue) -> bool:
         if isinstance(value, AttributeValue):
