@@ -56,7 +56,7 @@ async def create(
                         "nl": "Bekend bij de ontvanger",
                     }
                 },
-                clientReturnUrl=f"{settings.base_url}/exchanges/{exchange.id}/",
+                clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
         ),
@@ -133,7 +133,7 @@ async def get_exchange_info(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
                 disclose=exchange.attributes,
-                clientReturnUrl=f"{settings.base_url}/exchanges/{exchange.id}/",
+                clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
         ),

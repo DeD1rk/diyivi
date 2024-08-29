@@ -35,7 +35,7 @@ dzGoU63CTCQZrPw/g8vgNXNr65J7XKQBuEzJOh/3opwxHVjjyb77XeWQOTIQxNcP
 class Settings(BaseSettings):
     base_url: HttpUrl = Field(
         description="Base URL of the DIYivi API.",
-        default="http://localhost:8000",
+        default="http://localhost:8000/",
     )
 
     irma: IRMAServerConfig = IRMAServerConfig()
