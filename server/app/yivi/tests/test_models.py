@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from app.yivi.models import (
     Attribute,
     AttributeProofStatus,
@@ -7,6 +9,8 @@ from app.yivi.models import (
     ProofStatus,
     SessionStatus,
 )
+
+_issuance_time = datetime.fromtimestamp(1720051200, tz=UTC)
 
 
 def test_disclosed_attributes_satisfies():
@@ -70,40 +74,41 @@ def test_disclosure_result_satisfies():
         value={"": "1", "en": "1", "nl": "1"},
         id="pbdf.gemeente.address.houseNumber",
         status=AttributeProofStatus.PRESENT,
-        issuancetime=1720051200,
+        issuancetime=_issuance_time,
     )
     street = DisclosedAttribute(
         rawvalue="Foo Avenue",
         value={"": "Foo Avenue", "en": "Foo Avenue", "nl": "Foo Avenue"},
         id="pbdf.gemeente.address.street",
         status=AttributeProofStatus.PRESENT,
-        issuancetime=1720051200,
+        issuancetime=_issuance_time,
     )
     city = DisclosedAttribute(
         rawvalue="Nijmegen",
         value={"": "Nijmegen", "en": "Nijmegen", "nl": "Nijmegen"},
         id="other.issuer.address.city",
         status=AttributeProofStatus.PRESENT,
-        issuancetime=1720051200,
+        issuancetime=_issuance_time,
     )
     firstnames = DisclosedAttribute(
         rawvalue="Foo Bar",
         value={"": "Foo Bar", "en": "Foo Bar", "nl": "Foo Bar"},
         id="pbdf.gemeente.personalData.firstnames",
         status=AttributeProofStatus.PRESENT,
-        issuancetime=1720051200,
+        issuancetime=_issuance_time,
     )
     familyname = DisclosedAttribute(
         rawvalue="Baz",
         value={"": "Baz", "en": "Baz", "nl": "Baz"},
         id="pbdf.gemeente.personalData.familyname",
         status=AttributeProofStatus.PRESENT,
-        issuancetime=1720051200,
+        issuancetime=_issuance_time,
     )
 
     valid_result_base_fields = {
         "iss": "irmaserver",
-        "iat": "123",
+        "iat": 1720051200,
+        "exp": 1720051320,
         "sub": "disclosing_result",
         "type": "disclosing",
         "status": SessionStatus.DONE,

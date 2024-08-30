@@ -194,8 +194,11 @@ class BaseSessionResultJWT(BaseModel):
     iss: str = Field(
         description="Name of the current irma server as defined in its configuration.",
     )
-    iat: str = Field(
+    iat: Timestamp = Field(
         description="Unix timestamp indicating when this JWT was created",
+    )
+    exp: Timestamp = Field(
+        description="Unix timestamp indicating until when this JWT is valid",
     )
     sub: Literal["disclosing_result", "signing_result", "issuing_result"]
 

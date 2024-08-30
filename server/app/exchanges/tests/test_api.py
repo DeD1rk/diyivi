@@ -219,19 +219,7 @@ class TestStartExchange:
                 "type": "disclosing",
                 "proofStatus": "VALID",
                 "disclosed": [
-                    [
-                        {
-                            "rawvalue": "31612345678",
-                            "value": {
-                                "": "31612345678",
-                                "en": "31612345678",
-                                "nl": "31612345678",
-                            },
-                            "id": "irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
-                            "status": "PRESENT",
-                            "issuancetime": int(_issuance_time.timestamp()),
-                        }
-                    ]
+                    [self.phonenumber.model_dump(mode="json")],
                 ],
             },
             key=irmaserver_jwt_private_key,
@@ -248,9 +236,74 @@ class TestStartExchange:
         assert response.status_code == 400
         assert response.json() == {"detail": "Invalid session result"}
 
-    def test_successful_start(self):
-        pass
+    def test_invalid_timestamp(self, irmaserver_jwt_private_key):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
+        disclosure_result = jwt.encode(
+            {
+                "exp": int(datetime.now(UTC).timestamp() - 60),
+                "iat": int(datetime.now(UTC).timestamp() - 180),
+                "iss": "irmaserver",
+                "sub": "disclosing_result",
+                "token": "559RWzTITedKce9uxIJw",
+                "status": "DONE",
+                "type": "disclosing",
+                "proofStatus": "VALID",
+                "disclosed": [
+                    [self.phonenumber.model_dump(mode="json")],
+                    [self.email.model_dump(mode="json")],
+                ],
+            },
+            key=irmaserver_jwt_private_key,
+            algorithm="RS256",
+        )
+
+        response = client.post(
+            f"/exchanges/{self.exchange.id}/start/",
+            json={
+                "initiator_secret": self.exchange.initiator_secret,
+                "disclosure_result": disclosure_result,
+            },
+        )
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Invalid JWT"}
+
+    def test_successful_start(self, irmaserver_jwt_private_key):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+
+        disclosure_result = jwt.encode(
+            {
+                "exp": int(datetime.now(UTC).timestamp() + 60),
+                "iat": int(datetime.now(UTC).timestamp() - 60),
+                "iss": "irmaserver",
+                "sub": "disclosing_result",
+                "token": "559RWzTITedKce9uxIJw",
+                "status": "DONE",
+                "type": "disclosing",
+                "proofStatus": "VALID",
+                "disclosed": [
+                    [self.phonenumber.model_dump(mode="json")],
+                    [self.email.model_dump(mode="json")],
+                ],
+            },
+            key=irmaserver_jwt_private_key,
+            algorithm="RS256",
+        )
+
+        response = client.post(
+            f"/exchanges/{self.exchange.id}/start/",
+            json={
+                "initiator_secret": self.exchange.initiator_secret,
+                "disclosure_result": disclosure_result,
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json() is None
+
+        exchange = Exchange.model_validate_json(_storage._exchanges[self.exchange.id])
+        assert exchange.public_initiator_attribute_values == [self.phonenumber]
+        assert exchange.initiator_attribute_values == [[self.email]]
 
 class TestGetExchangeInfo:
     exchange = Exchange(
