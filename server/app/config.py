@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 class IRMAServerConfig(BaseModel):
     server_url: HttpUrl = Field(
         description="URL of the IRMA server to use.",
-        default="http://localhost:8088",
+        default="https://irmaserver.diyivi.ddoesburg.nl",
     )
 
     server_public_key: bytes = Field(
@@ -27,7 +27,8 @@ dzGoU63CTCQZrPw/g8vgNXNr65J7XKQBuEzJOh/3opwxHVjjyb77XeWQOTIQxNcP
     )
 
     session_request_issuer_id: str = Field(
-        description="Issuer ID to use in session request JWTs. This tells the IRMA server which key to verify a session request JWT with.",
+        description="Issuer ID to use in session request JWTs. "
+        "This tells the IRMA server which key to verify a session request JWT with.",
         default="diyivi",
     )
 
