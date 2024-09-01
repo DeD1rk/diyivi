@@ -143,7 +143,8 @@ class ExtendedDisclosureRequest(BaseModel):
     )
 
     timeout: int | None = Field(
-        description="Wait this many seconds for the Yivi app to connect before the session times out.",
+        description="Wait this many seconds"
+        " for the Yivi app to connect before the session times out.",
         default=None,
         ge=0,
     )
@@ -183,9 +184,7 @@ class DisclosedAttribute(BaseModel):
             return self.id == value.type and (
                 (value.not_null is None and self.rawvalue == value.value)
                 or (value.not_null is True and self.status != AttributeProofStatus.NULL)
-                or (
-                    value.not_null is False and self.status == AttributeProofStatus.NULL
-                )
+                or (value.not_null is False and self.status == AttributeProofStatus.NULL)
             )
         return self.id == value
 
@@ -274,9 +273,7 @@ def satisfies_disjunction(
     disjunction: Sequence[Sequence[Attribute | AttributeValue]],
     disclosed: Sequence[DisclosedAttribute],
 ) -> bool:
-    return any(
-        satisfies_conjunction(conjunction, disclosed) for conjunction in disjunction
-    )
+    return any(satisfies_conjunction(conjunction, disclosed) for conjunction in disjunction)
 
 
 def satisfies_conjunction(

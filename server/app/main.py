@@ -14,4 +14,4 @@ app.include_router(exchanges_router, prefix="/exchanges")
 
 def output_schema():
     schema = app.openapi()
-    print(json.dumps(schema, indent=2))
+    print(json.dumps(schema, indent=2))  # noqa: T201

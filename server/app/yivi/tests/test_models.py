@@ -141,9 +141,7 @@ def test_disclosure_result_satisfies():
             [housenumber, street],
             [],
         ],
-    ).satisfies_condiscon(
-        condiscon
-    ), "`disclosed` elements must match request's disjunctions"
+    ).satisfies_condiscon(condiscon), "`disclosed` elements must match request's disjunctions"
 
     assert DisclosureSessionResultJWT(
         **valid_result_base_fields,
@@ -171,18 +169,14 @@ def test_disclosure_result_satisfies():
             [familyname, firstnames],
             [familyname, firstnames],
         ],
-    ).satisfies_condiscon(
-        condiscon
-    ), "`disclosed` elements must match request's disjunctions"
+    ).satisfies_condiscon(condiscon), "`disclosed` elements must match request's disjunctions"
 
     assert not DisclosureSessionResultJWT(
         **valid_result_base_fields,
         disclosed=[
             [street, housenumber, city, familyname, firstnames],
         ],
-    ).satisfies_condiscon(
-        condiscon
-    ), "`disclosed` elements must match request's disjunctions"
+    ).satisfies_condiscon(condiscon), "`disclosed` elements must match request's disjunctions"
 
     assert not DisclosureSessionResultJWT(
         **{**valid_result_base_fields, "proofStatus": ProofStatus.EXPIRED},

@@ -10,6 +10,7 @@ from app.exchanges.models import (
     CreateExchangeRequest,
     Exchange,
     InitiatorExchangeResponse,
+    RecipientExchangeResponse,
 )
 from app.models import HTTPExceptionResponse
 from app.yivi.models import (
@@ -96,7 +97,7 @@ async def start(
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     if not result.satisfies_condiscon(
-        [exchange.public_initiator_attributes] + exchange.attributes,
+        [exchange.public_initiator_attributes, *exchange.attributes],
     ):
         raise HTTPException(status_code=400, detail="Invalid session result")
 
