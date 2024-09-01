@@ -1,1 +1,4 @@
 reference_data
+
+.coverage
+__pycache__

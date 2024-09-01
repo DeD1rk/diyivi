@@ -14,15 +14,56 @@ pydantic-settings = "^2.3.4"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.5.0"
+ruff = "^0.6.3"
 pre-commit = "^3.7.1"
 mypy = "^1.10.1"
 pytest = "^8.2.2"
+coverage = "^7.6.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "N",
+    "UP",
+    "PIE",
+    "Q",
+    "PLE",
+    "PLW",
+    "RUF",
+    "T20",
+    "PT",
+    "D200",
+    "D201",
+    "D202",
+    "D204",
+    "D205",
+    "D206",
+    "D207",
+    "D208",
+    "D209",
+    "D210",
+    "D211",
+    "D212",
+    "D300",
+    "D301",
+    "D400",
+    "D401",
+    "D402",
+    "D403",
+    "D412",
+    "D414",
+    "D418",
+    "D419",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
