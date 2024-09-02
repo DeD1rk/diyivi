@@ -143,3 +143,18 @@ class RecipientResponseResponse(BaseModel):
         pattern="^[0-9a-f]{32}$",
         description="Secret for the recipient to maintain access to the exchanged attributes.",
     )
+
+
+class ExchangeResultResponse(BaseModel):
+    """Response to a request for an exchange result."""
+
+    public_initiator_attribute_values: list[DisclosedAttribute]
+    initiator_attribute_values: list[list[DisclosedAttribute]]
+
+    replies: list[list[list[DisclosedAttribute]]] = Field(
+        description="""The disclosed attributes of the recipients.
+
+        Each element contains the disclosed attributes of one reply.
+        The replies are ordered in the order the replies were received in.
+        """,
+    )

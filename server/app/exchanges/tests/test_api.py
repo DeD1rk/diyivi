@@ -135,7 +135,6 @@ class TestCreateExchange:
 
 class TestStartExchange:
     exchange = Exchange(
-        id="0123456789abcdef",
         initiator_secret="a" * 32,
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
@@ -298,8 +297,6 @@ class TestStartExchange:
 
 class TestGetExchangeInfo:
     exchange = Exchange(
-        id="0123456789abcdef",
-        initiator_secret="a" * 32,
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
     )
@@ -386,8 +383,6 @@ class TestGetExchangeInfo:
 
 class TestRespond:
     exchange = Exchange(
-        id="0123456789abcdef",
-        initiator_secret="a" * 32,
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
     )
@@ -486,3 +481,123 @@ class TestRespond:
 
     def test_already_responded(self):
         pass  # TODO: expected result depends on whether multiple responses are allowed.
+
+
+class TestGetExchangeResult:
+    phonenumber = DisclosedAttribute(
+        rawvalue="31612345678",
+        value={"": "31612345678", "en": "31612345678", "nl": "31612345678"},
+        id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+        status=AttributeProofStatus.PRESENT,
+        issuancetime=_issuance_time,
+    )
+
+    email1 = DisclosedAttribute(
+        rawvalue="foo@example.com",
+        value={"": "foo@example.com", "en": "foo@example.com", "nl": "foo@example.com"},
+        id="irma-demo.sidn-pbdf.email.email",
+        status=AttributeProofStatus.PRESENT,
+        issuancetime=_issuance_time,
+    )
+
+    email2 = DisclosedAttribute(
+        rawvalue="bar@example.com",
+        value={"": "bar@example.com", "en": "bar@example.com", "nl": "bar@example.com"},
+        id="irma-demo.sidn-pbdf.email.email",
+        status=AttributeProofStatus.PRESENT,
+        issuancetime=_issuance_time,
+    )
+
+    exchange = Exchange(
+        attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
+        public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
+        initiator_attribute_values=[[email1]],
+        public_initiator_attribute_values=[phonenumber],
+    )
+
+    reply = ExchangeReply(
+        exchange_id=exchange.id,
+        attribute_values=[[email2]],
+    )
+
+    def test_no_replies(self):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+
+        response = client.get(
+            f"/exchanges/{self.exchange.id}/result/",
+            params={"secret": self.exchange.initiator_secret},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["replies"] == []
+
+    def test_successful(self):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+        _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
+
+        response = client.get(
+            f"/exchanges/{self.exchange.id}/result/",
+            params={"secret": self.exchange.initiator_secret},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["public_initiator_attribute_values"] == [
+            self.phonenumber.model_dump()
+        ]
+        assert response.json()["initiator_attribute_values"] == [[self.email1.model_dump()]]
+        assert response.json()["replies"] == [[[self.email2.model_dump()]]]
+
+    def test_invalid_secret(self):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+        _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
+
+        response = client.get(
+            f"/exchanges/{self.exchange.id}/result/",
+            params={"secret": "b" * 32},
+        )
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Exchange not found"}
+
+    def test_using_recipient_secret(self):
+        # TODO: This is the many-to-many case. In other scenarios, any other recipient's replies
+        # should be filtered out.
+        reply2 = ExchangeReply(
+            exchange_id=self.exchange.id,
+            attribute_values=[
+                [
+                    DisclosedAttribute(
+                        rawvalue="baz@example.com",
+                        value={
+                            "": "baz@example.com",
+                            "en": "baz@example.com",
+                            "nl": "baz@example.com",
+                        },
+                        id="irma-demo.sidn-pbdf.email.email",
+                        status=AttributeProofStatus.PRESENT,
+                        issuancetime=_issuance_time,
+                    )
+                ]
+            ],
+        )
+
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+        _storage._exchange_replies[self.exchange.id] = [
+            self.reply.model_dump_json(),
+            reply2.model_dump_json(),
+        ]
+
+        response = client.get(
+            f"/exchanges/{self.exchange.id}/result/",
+            params={"secret": reply2.recipient_secret},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["public_initiator_attribute_values"] == [
+            self.phonenumber.model_dump()
+        ]
+        assert response.json()["initiator_attribute_values"] == [[self.email1.model_dump()]]
+        assert response.json()["replies"] == [
+            [[self.email2.model_dump()]],
+            [[reply2.attribute_values[0][0].model_dump()]],
+        ]
