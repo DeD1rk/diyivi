@@ -128,3 +128,18 @@ class RecipientExchangeResponse(BaseModel):
     request_jwt: str = Field(
         description="JWT containing a disclosure request for the recipient.",
     )
+
+
+class RecipientResponseResponse(BaseModel):
+    """Response to a recipient's disclosure."""
+
+    public_initiator_attribute_values: list[DisclosedAttribute]
+    initiator_attribute_values: list[list[DisclosedAttribute]]
+    response_attribute_values: list[list[DisclosedAttribute]]
+
+    recipient_secret: str = Field(
+        min_length=32,
+        max_length=32,
+        pattern="^[0-9a-f]{32}$",
+        description="Secret for the recipient to maintain access to the exchanged attributes.",
+    )

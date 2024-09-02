@@ -9,8 +9,10 @@ from app.exchanges.dependencies import Storage, get_exchange, get_storage
 from app.exchanges.models import (
     CreateExchangeRequest,
     Exchange,
+    ExchangeReply,
     InitiatorExchangeResponse,
     RecipientExchangeResponse,
+    RecipientResponseResponse,
 )
 from app.models import HTTPExceptionResponse
 from app.yivi.models import (
@@ -156,6 +158,39 @@ async def get_exchange_info(
 )
 async def respond(
     exchange: Annotated[Exchange, Depends(get_exchange)],
-    disclosure_result: Annotated[str, Body(title="Disclosure session result JWT")],
+    disclosure_result: Annotated[str, Body(title="Disclosure session result JWT", embed=True)],
+    storage: Annotated[Storage, Depends(get_storage)],
 ):
     """Submit the session result JWT of a recipient's disclosure."""
+    if (
+        exchange.public_initiator_attribute_values is None
+        or exchange.initiator_attribute_values is None
+    ):
+        raise HTTPException(status_code=404, detail="Exchange not found")
+    # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
+
+    try:
+        result = DisclosureSessionResultJWT.parse_jwt(disclosure_result)
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=400, detail="Invalid JWT")
+    except ValidationError:
+        raise HTTPException(status_code=400, detail="Invalid session result")
+
+    if not result.satisfies_condiscon(exchange.attributes):
+        raise HTTPException(status_code=400, detail="Invalid session result")
+
+    reply = ExchangeReply(
+        exchange_id=exchange.id,
+        attribute_values=result.disclosed,
+    )
+    await storage.push_reply(reply)
+    # TODO: notify initiator.
+
+    return RecipientResponseResponse(
+        public_initiator_attribute_values=exchange.public_initiator_attribute_values,
+        initiator_attribute_values=exchange.initiator_attribute_values,
+        response_attribute_values=reply.attribute_values,
+        recipient_secret=reply.recipient_secret,
+    )
+
+

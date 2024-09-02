@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.config import settings
 from app.exchanges.dependencies import _storage
-from app.exchanges.models import Exchange
+from app.exchanges.models import Exchange, ExchangeReply
 from app.main import app
 from app.yivi.models import (
     AttributeProofStatus,
@@ -380,6 +380,109 @@ class TestGetExchangeInfo:
             }
         ]
 
+    def test_already_responded(self):
+        pass  # TODO: expected result depends on whether multiple responses are allowed.
+
 
 class TestRespond:
-    pass
+    exchange = Exchange(
+        id="0123456789abcdef",
+        initiator_secret="a" * 32,
+        attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
+        public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
+    )
+
+    phonenumber = DisclosedAttribute(
+        rawvalue="31612345678",
+        value={"": "31612345678", "en": "31612345678", "nl": "31612345678"},
+        id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+        status=AttributeProofStatus.PRESENT,
+        issuancetime=_issuance_time,
+    )
+
+    email = DisclosedAttribute(
+        rawvalue="foo@example.com",
+        value={"": "foo@example.com", "en": "foo@example.com", "nl": "foo@example.com"},
+        id="irma-demo.sidn-pbdf.email.email",
+        status=AttributeProofStatus.PRESENT,
+        issuancetime=_issuance_time,
+    )
+
+    def test_exchange_not_found(self):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+
+        response = client.post("/exchanges/0000000000000000/respond/")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Exchange not found"}
+
+    def test_exchange_not_started(self):
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+
+        response = client.post(
+            f"/exchanges/{self.exchange.id}/respond/",
+            json={"disclosure_result": "dummy"},
+        )
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Exchange not found"}
+
+    def test_incorrect_attributes(self):
+        exchange = self.exchange.model_copy()
+        exchange.public_initiator_attribute_values = [self.phonenumber]
+        exchange.initiator_attribute_values = [[self.email]]
+        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+
+        result = jwt.encode(
+            {
+                **_common_result_jwt_fields,
+                "disclosed": [
+                    [self.phonenumber.model_dump(mode="json")],
+                ],
+            },
+            key=_irmaserver_jwt_private_key,
+            algorithm="RS256",
+        )
+
+        response = client.post(
+            f"/exchanges/{self.exchange.id}/respond/",
+            json={"disclosure_result": result},
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Invalid session result"}
+
+    def test_successful(self):
+        exchange = self.exchange.model_copy()
+        exchange.public_initiator_attribute_values = [self.phonenumber]
+        exchange.initiator_attribute_values = [[self.email]]
+        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+
+        result = jwt.encode(
+            {
+                **_common_result_jwt_fields,
+                "disclosed": [
+                    [self.email.model_dump(mode="json")],
+                ],
+            },
+            key=_irmaserver_jwt_private_key,
+            algorithm="RS256",
+        )
+
+        response = client.post(
+            f"/exchanges/{self.exchange.id}/respond/",
+            json={"disclosure_result": result},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["public_initiator_attribute_values"] == [
+            self.phonenumber.model_dump()
+        ]
+        assert response.json()["initiator_attribute_values"] == [[self.email.model_dump()]]
+        assert response.json()["response_attribute_values"] == [[self.email.model_dump()]]
+
+        assert len(_storage._exchange_replies[exchange.id]) == 1
+        saved_reply = ExchangeReply.model_validate_json(_storage._exchange_replies[exchange.id][0])
+
+        assert response.json()["recipient_secret"] == saved_reply.recipient_secret
+
+    def test_already_responded(self):
+        pass  # TODO: expected result depends on whether multiple responses are allowed.
