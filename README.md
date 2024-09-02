@@ -1,3 +1,6 @@
+[![Build](https://github.com/DeD1rk/diyivi/actions/workflows/build.yaml/badge.svg)](https://github.com/DeD1rk/diyivi/actions/workflows/build.yaml)
+[![Linting and Testing](https://github.com/DeD1rk/diyivi/actions/workflows/ci.yaml/badge.svg)](https://github.com/DeD1rk/diyivi/actions/workflows/ci.yaml)
+
 # Do It Yivi
 
 Do It Yivi (DIYivi) is a tool that allows users to easily disclose [Yivi](https://www.yivi.app/) attributes to each other.
