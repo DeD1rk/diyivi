@@ -78,11 +78,12 @@ async def create(
         400: {"model": HTTPExceptionResponse},
         404: {"model": HTTPExceptionResponse},
     },
+    status_code=204,
 )
 async def start(
     exchange: Annotated[Exchange, Depends(get_exchange)],
-    initiator_secret: Annotated[str, Body(pattern="^[0-9a-f]{32}$")],
-    disclosure_result: Annotated[str, Body(title="Disclosure session result JWT")],
+    initiator_secret: Annotated[str, Body(pattern="^[0-9a-f]{32}$", embed=True)],
+    disclosure_result: Annotated[str, Body(title="Disclosure session result JWT", embed=True)],
     storage: Annotated[Storage, Depends(get_storage)],
 ):
     """Start an exchange by submitting the session result JWT of the initiator's disclosure."""
@@ -131,6 +132,8 @@ async def get_exchange_info(
         or exchange.initiator_attribute_values is None
     ):
         raise HTTPException(status_code=404, detail="Exchange not found")
+
+    # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(

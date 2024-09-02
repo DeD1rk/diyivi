@@ -8,8 +8,8 @@ from app.exchanges.models import Exchange, ExchangeReply
 
 class Storage:
     def __init__(self):
-        self._exchanges = {}
-        self._exchange_replies = defaultdict(list)
+        self._exchanges: dict[str, str] = {}
+        self._exchange_replies: defaultdict[str, list[str]] = defaultdict(list)
 
     async def save_exchange(self, exchange: Exchange):
         self._exchanges[exchange.id] = exchange.model_dump_json()

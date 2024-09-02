@@ -288,8 +288,8 @@ class TestStartExchange:
             },
         )
 
-        assert response.status_code == 200
-        assert response.json() is None
+        assert response.status_code == 204
+        assert response.content == b""
 
         exchange = Exchange.model_validate_json(_storage._exchanges[self.exchange.id])
         assert exchange.public_initiator_attribute_values == [self.phonenumber]

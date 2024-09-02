@@ -1,4 +1,8 @@
-reference_data
-
-.coverage
 __pycache__
+
+reference_data
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+
