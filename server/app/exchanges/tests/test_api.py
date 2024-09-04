@@ -65,7 +65,7 @@ class TestCreateExchange:
         _storage._exchanges.clear()
 
         response = client.post(
-            "/exchanges/create/",
+            "/api/exchanges/create/",
             json={
                 "attributes": [
                     [["irma-demo.sidn-pbdf.email.email"]],
@@ -159,7 +159,7 @@ class TestStartExchange:
     def test_exchange_not_found(self):
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
-        response = client.post("/exchanges/0000000000000000/start/")
+        response = client.post("/api/exchanges/0000000000000000/start/")
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
@@ -167,7 +167,7 @@ class TestStartExchange:
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": "b" * 32,
                 "disclosure_result": "dummy",
@@ -183,7 +183,7 @@ class TestStartExchange:
         _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": self.exchange.initiator_secret,
                 "disclosure_result": "dummy",
@@ -196,7 +196,7 @@ class TestStartExchange:
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": self.exchange.initiator_secret,
                 "disclosure_result": "dummy",
@@ -228,7 +228,7 @@ class TestStartExchange:
         )
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": self.exchange.initiator_secret,
                 "disclosure_result": disclosure_result,
@@ -255,7 +255,7 @@ class TestStartExchange:
         )
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": self.exchange.initiator_secret,
                 "disclosure_result": disclosure_result,
@@ -280,7 +280,7 @@ class TestStartExchange:
         )
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/start/",
+            f"/api/exchanges/{self.exchange.id}/start/",
             json={
                 "initiator_secret": self.exchange.initiator_secret,
                 "disclosure_result": disclosure_result,
@@ -304,13 +304,13 @@ class TestGetExchangeInfo:
     def test_exchange_not_found(self):
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
-        response = client.get("/exchanges/0000000000000000/")
+        response = client.get("/api/exchanges/0000000000000000/")
         assert response.status_code == 404
 
     def test_exchange_not_started(self):
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
-        response = client.get(f"/exchanges/{self.exchange.id}/")
+        response = client.get(f"/api/exchanges/{self.exchange.id}/")
         assert response.status_code == 404
 
     def test_successful(self):
@@ -342,7 +342,7 @@ class TestGetExchangeInfo:
 
         _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
 
-        response = client.get(f"/exchanges/{self.exchange.id}/")
+        response = client.get(f"/api/exchanges/{self.exchange.id}/")
 
         assert response.status_code == 200
         response_data = response.json()
@@ -406,7 +406,7 @@ class TestRespond:
     def test_exchange_not_found(self):
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
-        response = client.post("/exchanges/0000000000000000/respond/")
+        response = client.post("/api/exchanges/0000000000000000/respond/")
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
@@ -414,7 +414,7 @@ class TestRespond:
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/respond/",
+            f"/api/exchanges/{self.exchange.id}/respond/",
             json={"disclosure_result": "dummy"},
         )
         assert response.status_code == 404
@@ -438,7 +438,7 @@ class TestRespond:
         )
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/respond/",
+            f"/api/exchanges/{self.exchange.id}/respond/",
             json={"disclosure_result": result},
         )
 
@@ -463,7 +463,7 @@ class TestRespond:
         )
 
         response = client.post(
-            f"/exchanges/{self.exchange.id}/respond/",
+            f"/api/exchanges/{self.exchange.id}/respond/",
             json={"disclosure_result": result},
         )
 
@@ -524,7 +524,7 @@ class TestGetExchangeResult:
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
 
         response = client.get(
-            f"/exchanges/{self.exchange.id}/result/",
+            f"/api/exchanges/{self.exchange.id}/result/",
             params={"secret": self.exchange.initiator_secret},
         )
 
@@ -536,7 +536,7 @@ class TestGetExchangeResult:
         _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
 
         response = client.get(
-            f"/exchanges/{self.exchange.id}/result/",
+            f"/api/exchanges/{self.exchange.id}/result/",
             params={"secret": self.exchange.initiator_secret},
         )
 
@@ -552,7 +552,7 @@ class TestGetExchangeResult:
         _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
 
         response = client.get(
-            f"/exchanges/{self.exchange.id}/result/",
+            f"/api/exchanges/{self.exchange.id}/result/",
             params={"secret": "b" * 32},
         )
 
@@ -588,7 +588,7 @@ class TestGetExchangeResult:
         ]
 
         response = client.get(
-            f"/exchanges/{self.exchange.id}/result/",
+            f"/api/exchanges/{self.exchange.id}/result/",
             params={"secret": reply2.recipient_secret},
         )
 
