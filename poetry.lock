@@ -975,6 +975,20 @@ docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
 tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 
 [[package]]
+name = "pyqrcode"
+version = "1.2.1"
+description = "A QR code generator written purely in Python with SVG, EPS, PNG and terminal output."
+optional = false
+python-versions = "*"
+files = [
+    {file = "PyQRCode-1.2.1.tar.gz", hash = "sha256:fdbf7634733e56b72e27f9bce46e4550b75a3a2c420414035cae9d9d26b234d5"},
+    {file = "PyQRCode-1.2.1.zip", hash = "sha256:1b2812775fa6ff5c527977c4cd2ccb07051ca7d0bc0aecf937a43864abe5eff6"},
+]
+
+[package.extras]
+png = ["pypng (>=0.0.13)"]
+
+[[package]]
 name = "pytest"
 version = "8.3.2"
 description = "pytest: simple powerful testing with Python"
@@ -1083,6 +1097,36 @@ files = [
     {file = "PyYAML-6.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:39693e1f8320ae4f43943590b49779ffb98acb81f788220ea932a6b6c51004d8"},
     {file = "pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"},
 ]
+
+[[package]]
+name = "pyzbar"
+version = "0.1.9"
+description = "Read one-dimensional barcodes and QR codes from Python 2 and 3."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyzbar-0.1.9-py2.py3-none-any.whl", hash = "sha256:4559628b8192feb25766d954b36a3753baaf5c97c03135aec7e4a026036b475d"},
+    {file = "pyzbar-0.1.9-py2.py3-none-win32.whl", hash = "sha256:8f4c5264c9c7c6b9f20d01efc52a4eba1ded47d9ba857a94130afe33703eb518"},
+    {file = "pyzbar-0.1.9-py2.py3-none-win_amd64.whl", hash = "sha256:13e3ee5a2f3a545204a285f41814d5c0db571967e8d4af8699a03afc55182a9c"},
+]
+
+[package.extras]
+scripts = ["Pillow (>=3.2.0)"]
+
+[[package]]
+name = "qr2text"
+version = "1.1.0"
+description = "Convert PyQRCode generated SVG to ASCII art"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "qr2text-1.1.0-py3-none-any.whl", hash = "sha256:0aebe6a8bc698692329861512ea29784a92b65cf3dfa5337b7230477fa56e0bd"},
+    {file = "qr2text-1.1.0.tar.gz", hash = "sha256:f0ed6843a464c7bdeb1e6e4eeb37bd69708248e8a7f3eb5414f5ea8a120b47cd"},
+]
+
+[package.dependencies]
+pyqrcode = "*"
+pyzbar = "*"
 
 [[package]]
 name = "rich"
@@ -1478,4 +1522,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "fe65e525523d1493d34b77168cfbc8419e3243bb360173c94021c71b1b61f5fa"
+content-hash = "bc7e613212a1163c9d0a4abbe2b23c40a88507ad60df364826792d96ebb7bc61"
