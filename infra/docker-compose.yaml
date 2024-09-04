@@ -7,7 +7,7 @@ services:
       IRMASERVER_NO_EMAIL: 1
       IRMASERVER_NO_TLS: 1
       IRMASERVER_AUGMENT_CLIENT_RETURN_URL: 1
-      IRMASERVER_URL: https://diyivi.ddoesburg.nl
+      IRMASERVER_URL: https://diyivi.ddoesburg.nl/yivi/
       # Configure the key that the API can sign session request JWTs with.
       # WARNING: this is a placeholder key. Generate a secret one for production use.
       IRMASERVER_REQUESTORS: '{"diyivi": {"auth_method": "hmac", "key": "dW5zYWZlX3NlY3JldF9rZXk="}}'
