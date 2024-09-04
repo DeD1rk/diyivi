@@ -1,0 +1,14 @@
+**/*
+
+!client/
+
+client/node_modules/
+client/dist/
+
+!pyproject.toml
+!poetry.lock
+!server/
+
+!infra/nginx/
+!infra/server/
+

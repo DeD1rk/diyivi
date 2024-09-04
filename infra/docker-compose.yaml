@@ -1,12 +1,13 @@
 services:
-  irma-server:
-    image: ghcr.io/privacybydesign/irma:latest
+  irma:
+    image: ghcr.io/privacybydesign/irma:main
     command: server -v
     environment:
       IRMASERVER_NO_AUTH: 0
       IRMASERVER_NO_EMAIL: 1
       IRMASERVER_NO_TLS: 1
       IRMASERVER_AUGMENT_CLIENT_RETURN_URL: 1
+      IRMASERVER_URL: https://diyivi.ddoesburg.nl
       # Configure the key that the API can sign session request JWTs with.
       # WARNING: this is a placeholder key. Generate a secret one for production use.
       IRMASERVER_REQUESTORS: '{"diyivi": {"auth_method": "hmac", "key": "dW5zYWZlX3NlY3JldF9rZXk="}}'
@@ -14,11 +15,32 @@ services:
       IRMASERVER_JWT_PRIVKEY_file: /run/secrets/irmaserver-jwt-privkey
     secrets:
       - irmaserver-jwt-privkey
+
+  server:
+    image: ghcr.io/ded1rk/diyivi-server:main
+    environment:
+      BASE_URL: https://diyivi.ddoesburg.nl/
+      IRMA__SERVER_URL: https://diyivi.ddoesburg.nl/yivi/
+
+  nginx:
+    image: ghcr.io/ded1rk/diyivi-nginx:main
+    restart: always
     ports:
-      - 80:8088
+      - 80:80
+      - 443:443
+    environment:
+      CERTBOT_EMAIL: dirk.doesburg+diyivi-letsencrypt@gmail.com
+      STAGING: 1
+    volumes:
+      - letsencrypt:/etc/letsencrypt:rw
+
+
 
 secrets:
   irmaserver-jwt-privkey:
     # WARNING: this is a placeholder key. Generate a secret one for production use.
     # For example, use: openssl genrsa -out irmaserver.key 2048
     file: ./irmaserver_private.pem
+
+volumes:
+  letsencrypt:
