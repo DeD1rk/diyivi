@@ -2,7 +2,7 @@ import secrets
 
 from pydantic import BaseModel, Field
 
-from app.yivi.models import Attribute, DisclosedAttribute
+from app.yivi.models import Attribute, DisclosedAttribute, Timestamp
 
 
 class Exchange(BaseModel):
@@ -38,29 +38,34 @@ class Exchange(BaseModel):
         default=None,
         description="""The initiator's disclosed attributes.
 
-        If set, this should satisfy the ConDisCon in `attributes`. This field only set
-        once the initiator has successfully disclosed their attributes.
+        If set, this should satisfy the ConDisCon in `attributes`.
+        This field is only set once the initiator has successfully disclosed their attributes.
         """,
     )
     public_initiator_attribute_values: list[DisclosedAttribute] | None = Field(
         default=None,
         description="""The initiator's disclosed public attributes.
 
-        This should satisfy the disjunction in `public_initiator_attributes`. This field
-        is only set once the initiator has successfully disclosed their attributes.
+        If set, this should satisfy the disjunction in `public_initiator_attributes`.
+        This field is only set once the initiator has successfully disclosed their attributes.
         """,
     )
+
+    expire_at: Timestamp = Field(
+        description="Unix timestamp indicating when this exchange will be removed.",
+    )
+
+    @property
+    def started(self) -> bool:
+        """Whether the exchange has been started."""
+        return (
+            self.initiator_attribute_values is not None
+            and self.public_initiator_attribute_values is not None
+        )
 
 
 class ExchangeReply(BaseModel):
     """Reply to an exchange as saved in the backend."""
-
-    id: str = Field(
-        min_length=16,
-        max_length=16,
-        pattern="^[0-9a-f]{16}$",
-        default_factory=lambda: secrets.token_hex(8),
-    )
 
     exchange_id: str = Field(
         min_length=16,

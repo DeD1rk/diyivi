@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
@@ -44,6 +45,7 @@ async def create(
         public_initiator_attribute_values=None,
         attributes=exchange_request.attributes,
         initiator_attribute_values=None,
+        expire_at=datetime.now(UTC) + timedelta(seconds=settings.exchange_ttl_before_start),
     )
     await storage.save_exchange(exchange)
 
@@ -90,7 +92,7 @@ async def start(
     """Start an exchange by submitting the session result JWT of the initiator's disclosure."""
     if exchange.initiator_secret != initiator_secret:
         raise HTTPException(status_code=400, detail="Incorrect initiator secret")
-    if exchange.public_initiator_attribute_values is not None:
+    if exchange.started:
         raise HTTPException(status_code=400, detail="Exchange already started")
 
     try:
@@ -112,6 +114,8 @@ async def start(
     exchange.public_initiator_attribute_values = result.disclosed[0]
     exchange.initiator_attribute_values = result.disclosed[1:]
 
+    exchange.expire_at = datetime.now(UTC) + timedelta(seconds=settings.exchange_ttl)
+
     await storage.save_exchange(exchange)
 
     return
@@ -128,10 +132,7 @@ async def get_exchange_info(
     exchange: Annotated[Exchange, Depends(get_exchange)],
 ) -> RecipientExchangeResponse:
     """Get information about an exchange, allowing a recipient to decide to respond."""
-    if (
-        exchange.public_initiator_attribute_values is None
-        or exchange.initiator_attribute_values is None
-    ):
+    if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
 
     # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
@@ -148,7 +149,7 @@ async def get_exchange_info(
 
     return RecipientExchangeResponse(
         attributes=exchange.attributes,
-        public_initiator_attribute_values=exchange.public_initiator_attribute_values,
+        public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
         request_jwt=disclosure_request,
     )
 
@@ -166,10 +167,7 @@ async def respond(
     storage: Annotated[Storage, Depends(get_storage)],
 ) -> RecipientResponseResponse:
     """Submit the session result JWT of a recipient's disclosure."""
-    if (
-        exchange.public_initiator_attribute_values is None
-        or exchange.initiator_attribute_values is None
-    ):
+    if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
     # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
 
@@ -187,12 +185,12 @@ async def respond(
         exchange_id=exchange.id,
         attribute_values=result.disclosed,
     )
-    await storage.push_reply(reply)
+    await storage.push_reply(exchange, reply)
     # TODO: notify initiator.
 
     return RecipientResponseResponse(
-        public_initiator_attribute_values=exchange.public_initiator_attribute_values,
-        initiator_attribute_values=exchange.initiator_attribute_values,
+        public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
+        initiator_attribute_values=exchange.initiator_attribute_values,  # type: ignore
         response_attribute_values=reply.attribute_values,
         recipient_secret=reply.recipient_secret,
     )
@@ -216,10 +214,7 @@ async def get_exchange_result(
     does not provide any new information for them.
     """
     # TODO: In a many-to-many exchange, the recipients can use this to get the result of the others.
-    if (
-        exchange.public_initiator_attribute_values is None
-        or exchange.initiator_attribute_values is None
-    ):
+    if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
 
     replies = await storage.get_replies(exchange.id)
@@ -230,7 +225,7 @@ async def get_exchange_result(
         raise HTTPException(status_code=404, detail="Exchange not found")
 
     return ExchangeResultResponse(
-        public_initiator_attribute_values=exchange.public_initiator_attribute_values,
-        initiator_attribute_values=exchange.initiator_attribute_values,
+        public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
+        initiator_attribute_values=exchange.initiator_attribute_values,  # type: ignore
         replies=[reply.attribute_values for reply in replies],
     )

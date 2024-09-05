@@ -1,6 +1,7 @@
 services:
   irma:
     image: ghcr.io/privacybydesign/irma:main
+    restart: always
     command: server -v
     environment:
       IRMASERVER_NO_AUTH: 0
@@ -18,9 +19,11 @@ services:
 
   server:
     image: ghcr.io/ded1rk/diyivi-server:main
+    restart: always
     environment:
       BASE_URL: https://diyivi.ddoesburg.nl/
       IRMA__SERVER_URL: https://diyivi.ddoesburg.nl/yivi/
+      REDIS_URL: redis://redis:6379
 
   nginx:
     image: ghcr.io/ded1rk/diyivi-nginx:main
@@ -34,7 +37,9 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt:rw
 
-
+  redis:
+    image: redis:7-alpine
+    restart: always
 
 secrets:
   irmaserver-jwt-privkey:

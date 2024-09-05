@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi.testclient import TestClient
@@ -138,6 +138,7 @@ class TestStartExchange:
         initiator_secret="a" * 32,
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
+        expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     phonenumber = DisclosedAttribute(
@@ -299,6 +300,7 @@ class TestGetExchangeInfo:
     exchange = Exchange(
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
+        expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     def test_exchange_not_found(self):
@@ -385,6 +387,7 @@ class TestRespond:
     exchange = Exchange(
         attributes=[[["irma-demo.sidn-pbdf.email.email"]]],
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
+        expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     phonenumber = DisclosedAttribute(
@@ -513,6 +516,7 @@ class TestGetExchangeResult:
         public_initiator_attributes=[["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
         initiator_attribute_values=[[email1]],
         public_initiator_attribute_values=[phonenumber],
+        expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     reply = ExchangeReply(

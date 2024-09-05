@@ -41,6 +41,30 @@ class Settings(BaseSettings):
 
     irma: IRMAServerConfig = IRMAServerConfig()
 
+    redis_url: str | None = Field(
+        default=None,
+        description="URL of the Redis server to use.",
+        examples=["redis://localhost:6379/0"],
+    )
+
+    exchange_ttl_before_start: int = Field(
+        default=600,
+        description="""Time in seconds to store an exchange before it starts.
+
+        If an exchange is not started within this time, it will be deleted.
+        This currently does not apply when no Redis storage is configured.
+        """,
+    )
+
+    exchange_ttl: int = Field(
+        default=3600 * 48,
+        description="""Time in seconds to store an exchange that has started.
+
+        After this time, an exchange and its replies will be deleted.
+        This currently does not apply when no Redis storage is configured.
+        """,
+    )
+
 
 settings = Settings()
 
