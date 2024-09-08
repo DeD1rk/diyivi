@@ -1,6 +1,9 @@
 __pycache__
 
 reference_data
+meeting_notes
+server/schema.json
+
 .pytest_cache
 .ruff_cache
 .coverage

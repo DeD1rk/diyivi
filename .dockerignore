@@ -9,6 +9,10 @@ client/dist/
 !poetry.lock
 !server/
 
+server/schema.json
+server/demo.py
+
 !infra/nginx/
 !infra/server/
 
+**/__pycache__/
