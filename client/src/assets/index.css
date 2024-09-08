@@ -68,6 +68,19 @@
 
     --ring: 350 76% 52%;
   }
+
+  @font-face {
+    font-family: 'Open Sans';
+    src: url('/fonts/OpenSans-VariableFont_wdth,wght.ttf');
+    font-style: normal;
+    font-weight: 100 1000;
+  }
+  @font-face {
+    font-family: 'Open Sans';
+    src: url('/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf');
+    font-style: italic;
+    font-weight: 100 1000;
+  }
 }
 
 @layer base {
@@ -75,6 +88,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-muted text-foreground text-base;
   }
 }
