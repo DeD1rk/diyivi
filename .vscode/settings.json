@@ -12,6 +12,7 @@
     "python.analysis.autoImportCompletions": true,
     "[typescript]": {
         "editor.indentSize": 2,
+        "editor.detectIndentation": false,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
@@ -20,11 +21,13 @@
     },
     "[vue]": {
         "editor.indentSize": 2,
+        "editor.detectIndentation": false,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.fixAll": "explicit",
         }
+
     },
     "python.testing.pytestArgs": [
         "server"

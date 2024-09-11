@@ -1,7 +1,9 @@
 import json
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
 from app.exchanges.api import router as exchanges_router
 
 app = FastAPI(
@@ -12,6 +14,13 @@ app = FastAPI(
     redoc_url=None,
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(settings.client_origin)],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(exchanges_router, prefix="/api/exchanges")
 
 

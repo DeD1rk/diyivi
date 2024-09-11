@@ -22,6 +22,7 @@ services:
     restart: always
     environment:
       BASE_URL: https://diyivi.ddoesburg.nl/
+      CLIENT_ORIGIN: https://diyivi.ddoesburg.nl
       IRMA__SERVER_URL: https://diyivi.ddoesburg.nl/yivi/
       REDIS_URL: redis://redis:6379
 
