@@ -4,4 +4,6 @@ defineProps({
 })
 </script>
 
-<template>This is the view for responding to an exchange.</template>
+<template>
+  <div class="p-5">Hier kom je als je en uitnodiging hebt ontvangen.</div>
+</template>

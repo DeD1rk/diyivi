@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 </script>
+
 <template>
-  <div>
-    This is the homepage.
+  <div class="p-5">
+    Hallo!
     <Button as-child>
-      <a href="/exchange/start/">Start exchange</a>
+      <RouterLink to="/exchange/create/">Begin een uitwisseling</RouterLink>
     </Button>
   </div>
 </template>
