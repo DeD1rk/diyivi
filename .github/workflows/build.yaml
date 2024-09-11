@@ -95,6 +95,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ./client
 
+      - run: npm install 
       - run: npm run build 
 
       - name: Upload built client
