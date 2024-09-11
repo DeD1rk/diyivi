@@ -39,7 +39,7 @@ class Settings(BaseSettings):
         default="http://localhost:8000/",
     )
 
-    client_origin: HttpUrl = Field(
+    client_origin: str = Field(
         description="Origin of the client application for CORS.",
         default="http://localhost:5173",
     )

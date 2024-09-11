@@ -3,7 +3,7 @@ import time
 
 import click
 import httpx
-import qr2text
+import qr2text  # type: ignore
 
 
 def do_request(
