@@ -5,13 +5,34 @@ import { initiatorExchangeKey } from '@/lib/keys'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-vue-next'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+
+// @ts-ignore
+import yivi from '@privacybydesign/yivi-frontend'
+
 async function startExchange() {
-  // yivi.use(YiviClient)
+  const disclosure = yivi.newWeb({
+    debugging: true,
+    session: {
+      url: import.meta.env.VITE_YIVI_URL || `${window.origin}/yivi`,
+      start: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        body: exchange.value?.request_jwt
+      }
+    }
+  })
+
+  try {
+    const result = await disclosure.start()
+    console.log('Successful disclosure! 🎉', result)
+  } catch (error) {
+    console.error("Couldn't do what you asked 😢", error)
+  }
 }
 
 const exchange = inject(initiatorExchangeKey)!
-
-// TODO: use yivi frontend packages to manage the disclosure?
 </script>
 <template>
   <Alert v-if="!exchange" variant="destructive" class="m-5">
