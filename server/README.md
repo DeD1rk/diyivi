@@ -26,5 +26,5 @@ ruff check .
 ruff format .
 
 # To save the OpenAPI specification to a file.
-python -c "import app.main; app.main.output_schema()" > schema.json
+python -c "import main; main.output_schema()" > schema.json
 ```

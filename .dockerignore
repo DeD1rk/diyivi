@@ -10,6 +10,7 @@ client/.env
 !poetry.lock
 !server/
 
+server/README.md
 server/schema.json
 server/demo.py
 

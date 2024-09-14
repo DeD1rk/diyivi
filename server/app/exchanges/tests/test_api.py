@@ -6,12 +6,12 @@ from fastapi.testclient import TestClient
 from app.config import settings
 from app.exchanges.dependencies import _storage
 from app.exchanges.models import Exchange, ExchangeReply
-from app.main import app
 from app.yivi.models import (
     AttributeProofStatus,
     DisclosedAttribute,
     DisclosureRequestJWT,
 )
+from server.main import app
 
 client = TestClient(app)
 

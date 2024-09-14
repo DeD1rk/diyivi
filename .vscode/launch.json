@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/main.py",
+            "console": "internalConsole",
+            "justMyCode": false,
+        },
+    ]
+}

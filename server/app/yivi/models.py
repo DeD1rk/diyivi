@@ -259,6 +259,9 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
                 raw_result,
                 settings.irma.server_public_key,
                 algorithms=["RS256"],
+                # Allow for some inconsistency in system clocks between irma server and diyivi.
+                # This can be necessary when the irma server is running on a different machine.
+                leeway=5,
             )
             return cls.model_validate(result_dict)
         except jwt.InvalidTokenError:

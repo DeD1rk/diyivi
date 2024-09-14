@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 // @ts-ignore
 import yivi from '@privacybydesign/yivi-frontend'
+import client from '@/api'
 
 async function startExchange() {
   const disclosure = yivi.newWeb({
@@ -20,13 +21,33 @@ async function startExchange() {
           'Content-Type': 'text/plain'
         },
         body: exchange.value?.request_jwt
+      },
+      result: {
+        // @ts-ignore
+        url: (o, { sessionPtr, sessionToken }) => `${o.url}/session/${sessionToken}/result-jwt`,
+        // @ts-ignore
+        parseResponse: (r) => r.text()
       }
     }
   })
 
   try {
-    const result = await disclosure.start()
-    console.log('Successful disclosure! 🎉', result)
+    const result: string = await disclosure.start()
+    console.info('Successful disclosure! 🎉', result)
+    const { error } = await client.POST('/api/exchanges/{exchange_id}/start/', {
+      params: {
+        path: {
+          exchange_id: exchange.value!.id
+        }
+      },
+      body: {
+        initiator_secret: exchange.value!.initiator_secret,
+        disclosure_result: result
+      }
+    })
+    if (error) {
+      console.error('Error starting exchange', error)
+    }
   } catch (error) {
     console.error("Couldn't do what you asked 😢", error)
   }

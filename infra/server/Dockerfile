@@ -26,7 +26,7 @@ FROM base AS production
 EXPOSE 8000
 
 COPY --from=build-venv /venv /venv
-COPY server/app /app
+COPY server /app
 
 RUN adduser --system --uid 5678 appuser
 

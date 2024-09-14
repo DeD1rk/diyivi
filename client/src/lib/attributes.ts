@@ -22,7 +22,7 @@ export const attributeOptions: {
   },
   birthdate: {
     label: 'Geboortedatum',
-    attributeId: 'irma-demo.sidn-pbdf.personalData.dateofbirth'
+    attributeId: 'irma-demo.gemeente.personalData.dateofbirth'
   },
   mobilenumber: {
     label: 'Mobiel telefoonnumer',
