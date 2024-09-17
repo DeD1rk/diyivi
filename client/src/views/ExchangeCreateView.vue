@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { ref, inject, defineEmits } from 'vue' // Import defineEmits from vue
-
+import { ref, defineEmits } from 'vue' // Import defineEmits from vue
 import client from '@/api'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { initiatorExchangeKey } from '@/lib/keys'
 import { attributeOptions, publicAttributeOptions } from '@/lib/attributes'
-import router from '@/router'
 import { Loader2 } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast'
 import type { InitiatorExchangeResponse } from '@/api/types'
