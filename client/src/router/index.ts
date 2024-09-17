@@ -17,25 +17,8 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/exchange/',
-      component: InitiatorExchangeView,
-      children: [
-        {
-          path: '/exchange/create/',
-          name: 'exchange-create',
-          component: ExchangeCreateView
-        },
-        {
-          path: '/exchange/start/',
-          name: 'exchange-start',
-          component: ExchangeStartView,
-          beforeEnter: (to) => {
-            console.log('beforeEnter', to)
-            const exchange = inject(initiatorExchangeKey)
-            console.log('exchange', exchange)
-          }
-        }
-      ]
+      path: '/exchange/start/',
+      component: InitiatorExchangeView
     },
     {
       path: '/exchange/respond/:id/',

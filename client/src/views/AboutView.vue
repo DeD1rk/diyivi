@@ -1,3 +1,3 @@
 <template>
-  <div class="p-5">Hier komt informatie over diyivi.</div>
+  <div class="p-8">Hier komt informatie over diyivi.</div>
 </template>

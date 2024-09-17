@@ -5,5 +5,5 @@ defineProps({
 </script>
 
 <template>
-  <div class="p-5">Hier kom je als je en uitnodiging hebt ontvangen.</div>
+  <div class="p-8">Hier kom je als je en uitnodiging hebt ontvangen.</div>
 </template>

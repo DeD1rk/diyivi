@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { inject } from 'vue'
-import { RouterLink } from 'vue-router'
-import { initiatorExchangeKey } from '@/lib/keys'
-import { Button } from '@/components/ui/button'
-import { AlertCircle } from 'lucide-vue-next'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { defineEmits, onMounted, ref } from 'vue'
+import type { InitiatorExchangeResponse } from '@/api/types'
+import { useToast } from '@/components/ui/toast'
 
 // @ts-ignore
 import yivi from '@privacybydesign/yivi-frontend'
 import client from '@/api'
 
-async function startExchange() {
+const props = defineProps<{
+  exchange: InitiatorExchangeResponse
+}>()
+const emit = defineEmits<{
+  started: []
+}>()
+
+const { toast } = useToast()
+
+const exchangeStarted = ref(false)
+
+onMounted(async () => {
   const disclosure = yivi.newWeb({
     debugging: true,
     session: {
@@ -20,7 +28,7 @@ async function startExchange() {
         headers: {
           'Content-Type': 'text/plain'
         },
-        body: exchange.value?.request_jwt
+        body: props.exchange.request_jwt
       },
       result: {
         // @ts-ignore
@@ -33,46 +41,47 @@ async function startExchange() {
 
   try {
     const result: string = await disclosure.start()
-    console.info('Successful disclosure! 🎉', result)
     const { error } = await client.POST('/api/exchanges/{exchange_id}/start/', {
       params: {
         path: {
-          exchange_id: exchange.value!.id
+          exchange_id: props.exchange.id
         }
       },
       body: {
-        initiator_secret: exchange.value!.initiator_secret,
+        initiator_secret: props.exchange.initiator_secret,
         disclosure_result: result
       }
     })
     if (error) {
-      console.error('Error starting exchange', error)
+      toast({
+        title: 'Oeps! Er ging iets mis',
+        description: 'Er is iets misgegaan bij het beginnen van de uitwisseling.'
+      })
+      console.error(error)
+    } else {
+      exchangeStarted.value = true
+      emit('started')
+      console.log(
+        'Send this to the other party:',
+        `${window.origin}/exchange/respond/${props.exchange.id}/`
+      )
     }
   } catch (error) {
-    console.error("Couldn't do what you asked 😢", error)
+    toast({
+      title: 'Oeps! Er ging iets mis',
+      description: 'Er is iets misgegaan bij het beginnen van de uitwisseling.'
+    })
+    console.error(error)
   }
-}
-
-const exchange = inject(initiatorExchangeKey)!
+})
 </script>
-<template>
-  <Alert v-if="!exchange" variant="destructive" class="m-5">
-    <AlertCircle class="w-4 h-4" />
-    <AlertTitle>Error</AlertTitle>
-    <AlertDescription
-      >Er is geen uitwisseling gestart.
-      <RouterLink class="underline" to="/exchange/create/">
-        Begin een nieuwe uitwisseling.
-      </RouterLink>
-    </AlertDescription>
-  </Alert>
-  <div class="p-5" v-else>
-    <h1 class="text-xl font-bold pt-4 pb-2">Uitwisseling beginnen</h1>
-    <p class="">Open in yivi</p>
-    <div>
-      <Button @click="startExchange"> Start </Button>
-    </div>
 
-    <div id="yivi-web-form"></div>
+<template>
+  <div class="p-8">
+    <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling beginnen</h1>
+    <p>Toon nu je eigen gegevens met Yivi.</p>
+    <div class="flex justify-center mt-16">
+      <div id="yivi-web-form"></div>
+    </div>
   </div>
 </template>
