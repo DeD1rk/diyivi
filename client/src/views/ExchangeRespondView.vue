@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onUpdated, ref } from 'vue'
 import client from '@/api'
-import type { RecipientExchangeResponse } from '@/api/types'
+import type { RecipientExchangeResponse, RecipientResponseResponse } from '@/api/types'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
+import router from '@/router'
+
+import ConfirmationDialog from '@/components/confirmation/ConfirmationDialog.vue'
+import ResponseDisclosureView from './exchange/ResponseDisclosureView.vue'
 
 const props = defineProps<{
   exchangeId: string
@@ -14,6 +18,8 @@ const { toast } = useToast()
 const isLoading = ref(true)
 const notFound = ref(false)
 const exchange = ref<RecipientExchangeResponse | null>(null)
+const confirmed = ref(false)
+const result = ref<RecipientResponseResponse | null>(null)
 
 async function loadExchange() {
   try {
@@ -39,6 +45,9 @@ async function loadExchange() {
   }
 }
 
+const cancelDialogOpen = ref(false)
+const continueDialogOpen = ref(false)
+
 loadExchange()
 </script>
 <template>
@@ -59,11 +68,41 @@ loadExchange()
           {{ attribute }}
         </li>
       </ul>
-      <p class="mt-4 font-semibold">Wil je deze gegevens delen?</p>
-      <div class="flex gap-4 mt-4">
-        <Button variant="outline">Nee, liever niet</Button>
-        <Button>Ja, ga door</Button>
-      </div>
+      <template v-if="!confirmed">
+        <p class="mt-4 font-semibold">Wil je deze gegevens delen?</p>
+        <div class="flex gap-4 mt-4">
+          <Button variant="outline" @click="() => (cancelDialogOpen = true)"
+            >Nee, liever niet</Button
+          >
+          <Button @click="() => (continueDialogOpen = true)">Ja, ga door</Button>
+        </div>
+      </template>
+      <ResponseDisclosureView v-else :exchangeId :exchange="exchange!"></ResponseDisclosureView>
     </template>
   </div>
+  <ConfirmationDialog
+    title="Weet je zeker dat je je gegevens niet wil delen?"
+    v-model="cancelDialogOpen"
+    @confirm="() => router.push('/')"
+  >
+    <template #description>
+      Je hoeft je gegevens niet te delen als je dat niet wil. Als je niets deelt, krijgen jij en
+      degene die de uitnodiging heeft gemaakt elkaars gegevens niet te zien.
+    </template>
+    <template #confirm>Ja, ik deel niets</template>
+  </ConfirmationDialog>
+  <ConfirmationDialog
+    title="Weet je zeker dat je je gegevens niet wil delen?"
+    v-model="continueDialogOpen"
+    @confirm="() => (confirmed = true)"
+  >
+    <template #description>
+      <p>Heb je de link naar deze pagina gekregen van iemand met ...?</p>
+      <p class="mt-2">
+        Als je de uitnodiging
+        <i>niet</i> van ... hebt gekregen, dan probeert iemand zich misschien voor te doen als een
+        ander. Deel dan je gegevens niet!
+      </p>
+    </template>
+  </ConfirmationDialog>
 </template>
