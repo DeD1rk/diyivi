@@ -24,7 +24,8 @@ pytest
 # To manually run linting and formatting.
 ruff check .
 ruff format .
+mypy .
 
 # To save the OpenAPI specification to a file.
-python -c "import main; main.output_schema()" > schema.json
+python -c "from app.main import output_schema; output_schema()" > schema.json     
 ```

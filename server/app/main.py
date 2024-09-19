@@ -17,7 +17,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[settings.client_origin],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +28,3 @@ app.include_router(exchanges_router, prefix="/api/exchanges")
 def output_schema():
     schema = app.openapi()
     print(json.dumps(schema, indent=2))  # noqa: T201
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)

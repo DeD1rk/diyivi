@@ -64,7 +64,7 @@ loadExchange()
         volgende gegevens van elkaar te zien:
       </p>
       <ul class="list-disc list-inside mt-4 ps-2 font-semibold">
-        <li v-for="(attribute, index) of exchange!.attributes[0]![0]" :key="index">
+        <li v-for="(attribute, index) of exchange!.attributes" :key="index">
           {{ attribute }}
         </li>
       </ul>

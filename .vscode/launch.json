@@ -1,10 +1,13 @@
 {
+    "version": "0.2.0",
     "configurations": [
         {
             "name": "Server",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/server/main.py",
+            "module": "uvicorn",
+            "cwd": "${workspaceFolder}/server",
+            "args": ["--reload", "app.main:app"],
             "console": "internalConsole",
             "justMyCode": false,
         },

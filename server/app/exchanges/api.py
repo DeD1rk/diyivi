@@ -22,6 +22,7 @@ from app.yivi.models import (
     DisclosureRequestJWT,
     DisclosureSessionResultJWT,
     ExtendedDisclosureRequest,
+    extract_attribute_values,
 )
 
 router = APIRouter()
@@ -53,8 +54,8 @@ async def create(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
                 disclose=[
-                    exchange.public_initiator_attributes,
-                    *exchange.attributes,
+                    [exchange.public_initiator_attributes],
+                    [exchange.attributes],
                 ],
                 labels={
                     "0": {
@@ -103,7 +104,7 @@ async def start(
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     if not result.satisfies_condiscon(
-        [exchange.public_initiator_attributes, *exchange.attributes],
+        [[exchange.public_initiator_attributes], [exchange.attributes]],
     ):
         raise HTTPException(status_code=400, detail="Invalid session result")
 
@@ -111,8 +112,12 @@ async def start(
     # public initiator attributes and (b) the disjunctions for the other attributes.
     # Since we put the public initiator attributes first, in the session request JWTs,
     # they are guaranteed to also be in the first element of the disclosed attributes.
-    exchange.public_initiator_attribute_values = result.disclosed[0]
-    exchange.initiator_attribute_values = result.disclosed[1:]
+    exchange.public_initiator_attribute_values = extract_attribute_values(
+        result.disclosed[0], exchange.public_initiator_attributes
+    )
+    exchange.initiator_attribute_values = extract_attribute_values(
+        result.disclosed[1], exchange.attributes
+    )
 
     exchange.expire_at = datetime.now(UTC) + timedelta(seconds=settings.exchange_ttl)
 
@@ -140,7 +145,7 @@ async def get_exchange_info(
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
-                disclose=exchange.attributes,
+                disclose=[[exchange.attributes]],
                 clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
@@ -178,12 +183,12 @@ async def respond(
     except ValidationError:
         raise HTTPException(status_code=400, detail="Invalid session result")
 
-    if not result.satisfies_condiscon(exchange.attributes):
+    if not result.satisfies_condiscon([[exchange.attributes]]):
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     reply = ExchangeReply(
         exchange_id=exchange.id,
-        attribute_values=result.disclosed,
+        attribute_values=extract_attribute_values(result.disclosed[0], exchange.attributes),
     )
     await storage.push_reply(exchange, reply)
     # TODO: notify initiator.

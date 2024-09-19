@@ -31,14 +31,10 @@ async function createExchange() {
     await new Promise((resolve) => setTimeout(resolve, 1000))
     const { data, error } = await client.POST('/api/exchanges/create/', {
       body: {
-        attributes: [
-          [
-            [...selectedAttributes.value].map(
-              (attribute) => attributeOptions[attribute]!.attributeId
-            )
-          ]
-        ],
-        public_initiator_attributes: [[publicAttributeOptions[publicAttribute.value]!.attributeId]]
+        attributes: [...selectedAttributes.value].map(
+          (attribute) => attributeOptions[attribute]!.attributeId
+        ),
+        public_initiator_attributes: [publicAttributeOptions[publicAttribute.value]!.attributeId]
       }
     })
 

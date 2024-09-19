@@ -288,3 +288,19 @@ def satisfies_conjunction(
             continue
         return False
     return True
+
+
+def extract_attribute_values(
+    disclosed: list[DisclosedAttribute], attributes: list[Attribute]
+) -> dict[Attribute, TranslatedString]:
+    """Extract the values of disclosed attributes.
+
+    Given a list of disclosed attributes and a list of requested attribute IDs,
+    returns a mapping from requested attribute IDs to the corresponding values.
+    This does not check whether all requested attributes are disclosed.
+    """
+    return {
+        disclosed_attribute.id: disclosed_attribute.value
+        for disclosed_attribute in disclosed
+        if disclosed_attribute.id in attributes
+    }

@@ -1,8 +1,11 @@
 import secrets
+from typing import Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from app.yivi.models import Attribute, DisclosedAttribute, Timestamp
+from app.yivi.models import Attribute, Timestamp, TranslatedString
+
+DisclosedValues = dict[Attribute, TranslatedString]
 
 
 class Exchange(BaseModel):
@@ -23,8 +26,10 @@ class Exchange(BaseModel):
         default_factory=lambda: secrets.token_hex(16),
     )
 
-    attributes: list[list[list[Attribute]]]
-    public_initiator_attributes: list[list[Attribute]] = Field(
+    attributes: list[Attribute] = Field(min_length=1)
+
+    public_initiator_attributes: list[Attribute] = Field(
+        min_length=1,
         description="""Attributes that the recipient already knows about the initiator.
 
         This is used to prevent a party B from becoming a man-in-the-middle by forwarding an
@@ -34,26 +39,46 @@ class Exchange(BaseModel):
         """,
     )
 
-    initiator_attribute_values: list[list[DisclosedAttribute]] | None = Field(
+    initiator_attribute_values: DisclosedValues | None = Field(
         default=None,
         description="""The initiator's disclosed attributes.
 
-        If set, this should satisfy the ConDisCon in `attributes`.
-        This field is only set once the initiator has successfully disclosed their attributes.
+        If set, this is a mapping from the attributes in `attributes`
+        to the corresponding disclosed values.
         """,
     )
-    public_initiator_attribute_values: list[DisclosedAttribute] | None = Field(
+    public_initiator_attribute_values: DisclosedValues | None = Field(
         default=None,
         description="""The initiator's disclosed public attributes.
 
-        If set, this should satisfy the disjunction in `public_initiator_attributes`.
-        This field is only set once the initiator has successfully disclosed their attributes.
+        If set, this is a mapping from the attributes in `public_initiator_attributes`
+        to the corresponding disclosed values.
         """,
     )
 
     expire_at: Timestamp = Field(
         description="Unix timestamp indicating when this exchange will be removed.",
     )
+
+    @model_validator(mode="after")
+    def check_initiator_attribute_values_match(self) -> Self:
+        if self.initiator_attribute_values is not None and set(
+            self.initiator_attribute_values.keys()
+        ) != set(self.attributes):
+            raise ValueError(
+                "Initiator's disclosed attributes do not match the exchange's attributes"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_public_initiator_attribute_values_match(self) -> Self:
+        if self.public_initiator_attribute_values is not None and set(
+            self.public_initiator_attribute_values.keys()
+        ) != set(self.public_initiator_attributes):
+            raise ValueError(
+                "Initiator's disclosed public attributes do not match the exchange's attributes"
+            )
+        return self
 
     @property
     def started(self) -> bool:
@@ -81,10 +106,11 @@ class ExchangeReply(BaseModel):
         default_factory=lambda: secrets.token_hex(16),
     )
 
-    attribute_values: list[list[DisclosedAttribute]] = Field(
+    attribute_values: DisclosedValues = Field(
         description="""The recipient's disclosed attributes.
 
-        This should satisfy the ConDisCon in the corresponding Exchange's `attributes`.
+        This is a mapping from the attributes in `Exchange.attributes`
+        to the corresponding disclosed values.
         """,
     )
 
@@ -94,9 +120,9 @@ class CreateExchangeRequest(BaseModel):
 
     # TODO: these can be replaced with pointers to predefined sets of attributes,
     #  or get validation based on configurable whitelisted attributes.
-    attributes: list[list[list[Attribute]]]
+    attributes: list[Attribute] = Field(min_length=1)
 
-    public_initiator_attributes: list[list[Attribute]] = Field(
+    public_initiator_attributes: list[Attribute] = Field(
         description="""Attributes that the recipient already knows about the initiator.
 
         This is used to prevent a party B from becoming a man-in-the-middle by forwarding an
@@ -104,6 +130,7 @@ class CreateExchangeRequest(BaseModel):
         already, such that party C will notice that a request was initiated by A and not by B,
         if B tries to forward A's request to C.
         """,
+        min_length=1,
     )
 
 
@@ -128,8 +155,8 @@ class InitiatorExchangeResponse(BaseModel):
 class RecipientExchangeResponse(BaseModel):
     """Information about an exchange for a recipient."""
 
-    attributes: list[list[list[Attribute]]]
-    public_initiator_attribute_values: list[DisclosedAttribute]
+    attributes: list[Attribute]
+    public_initiator_attribute_values: DisclosedValues
     request_jwt: str = Field(
         description="JWT containing a disclosure request for the recipient.",
     )
@@ -138,9 +165,9 @@ class RecipientExchangeResponse(BaseModel):
 class RecipientResponseResponse(BaseModel):
     """Response to a recipient's disclosure."""
 
-    public_initiator_attribute_values: list[DisclosedAttribute]
-    initiator_attribute_values: list[list[DisclosedAttribute]]
-    response_attribute_values: list[list[DisclosedAttribute]]
+    public_initiator_attribute_values: DisclosedValues
+    initiator_attribute_values: DisclosedValues
+    response_attribute_values: DisclosedValues
 
     recipient_secret: str = Field(
         min_length=32,
@@ -153,10 +180,10 @@ class RecipientResponseResponse(BaseModel):
 class ExchangeResultResponse(BaseModel):
     """Response to a request for an exchange result."""
 
-    public_initiator_attribute_values: list[DisclosedAttribute]
-    initiator_attribute_values: list[list[DisclosedAttribute]]
+    public_initiator_attribute_values: DisclosedValues
+    initiator_attribute_values: DisclosedValues
 
-    replies: list[list[list[DisclosedAttribute]]] = Field(
+    replies: list[DisclosedValues] = Field(
         description="""The disclosed attributes of the recipients.
 
         Each element contains the disclosed attributes of one reply.
