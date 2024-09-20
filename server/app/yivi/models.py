@@ -96,18 +96,6 @@ class DisclosureRequest(BaseModel):
         description="ConDisCon of attributes to disclose."
     )
 
-    labels: (
-        dict[
-            Annotated[str, Field(pattern=r"^(0|([1-9]\d*))$")],
-            TranslatedString,
-        ]
-        | None
-    ) = Field(
-        description="Optional labels for disjunctions. "
-        "See: https://irma.app/docs/session-requests/#disjunction-labels",
-        default=None,
-    )
-
     client_return_url: str | None = Field(
         description="URL to which the device with the Yivi app should return after the session.",
         alias="clientReturnUrl",
@@ -119,15 +107,6 @@ class DisclosureRequest(BaseModel):
         alias="augmentReturnUrl",
         default=None,
     )
-
-    @model_validator(mode="after")
-    def check_label_keys(self) -> Self:
-        num_disjunctions = len(self.disclose)
-        if self.labels is not None:
-            for key in self.labels.keys():
-                if int(key) >= num_disjunctions:
-                    raise ValueError("label key does not correspond to a disjunction")
-        return self
 
 
 class ExtendedDisclosureRequest(BaseModel):

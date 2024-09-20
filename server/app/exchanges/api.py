@@ -57,12 +57,6 @@ async def create(
                     [exchange.public_initiator_attributes],
                     [exchange.attributes],
                 ],
-                labels={
-                    "0": {
-                        "en": "Known by the recipient",
-                        "nl": "Bekend bij de ontvanger",
-                    }
-                },
                 clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),

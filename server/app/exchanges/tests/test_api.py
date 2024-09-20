@@ -100,9 +100,6 @@ class TestCreateExchange:
             f"{settings.base_url}exchanges/{response_data['id']}/"
         )
         assert disclosure_request.sprequest.request.augment_return_url is True
-        assert disclosure_request.sprequest.request.labels == {
-            "0": {"en": "Known by the recipient", "nl": "Bekend bij de ontvanger"}
-        }
 
         # Check what was saved in the storage.
         exchange = Exchange.model_validate_json(_storage._exchanges[response_data["id"]])
@@ -343,7 +340,6 @@ class TestGetExchangeInfo:
             f"{settings.base_url}exchanges/{exchange.id}/"
         )
         assert disclosure_request.sprequest.request.augment_return_url is True
-        assert disclosure_request.sprequest.request.labels is None
 
         assert disclosure_request.sprequest.request.disclose == [[response_data["attributes"]]]
 
