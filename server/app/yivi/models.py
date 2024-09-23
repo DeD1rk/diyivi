@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Annotated, Literal, Self, Sequence
 
 import jwt
-from pydantic import BaseModel, Field, PlainSerializer, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidationError, model_validator
 
 from app.config import settings
 
@@ -19,10 +19,6 @@ Attribute = Annotated[
             "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
         ],
     ),
-]
-
-TranslatedString = Annotated[
-    dict[str, str], Field(examples=[{"en": "Hello world!", "nl": "Hallo wereld!"}])
 ]
 
 Timestamp = Annotated[datetime, PlainSerializer(lambda x: int(x.timestamp()), return_type=int)]
@@ -65,6 +61,14 @@ class AttributeProofStatus(StrEnum):
     PRESENT = "PRESENT"
     EXTRA = "EXTRA"
     NULL = "NULL"
+
+
+class TranslatedString(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    default: str = Field(alias="")
+    nl: str = Field()
+    en: str = Field()
 
 
 class AttributeValue(BaseModel):

@@ -9,6 +9,7 @@ from app.config import settings
 from app.exchanges.dependencies import Storage, get_exchange, get_storage
 from app.exchanges.models import (
     CreateExchangeRequest,
+    DisclosedValue,
     Exchange,
     ExchangeReply,
     ExchangeResultResponse,
@@ -106,12 +107,16 @@ async def start(
     # public initiator attributes and (b) the disjunctions for the other attributes.
     # Since we put the public initiator attributes first, in the session request JWTs,
     # they are guaranteed to also be in the first element of the disclosed attributes.
-    exchange.public_initiator_attribute_values = extract_attribute_values(
-        result.disclosed[0], exchange.public_initiator_attributes
-    )
-    exchange.initiator_attribute_values = extract_attribute_values(
-        result.disclosed[1], exchange.attributes
-    )
+    exchange.public_initiator_attribute_values = [
+        DisclosedValue(id=id, value=value)
+        for id, value in extract_attribute_values(
+            result.disclosed[0], exchange.public_initiator_attributes
+        ).items()
+    ]
+    exchange.initiator_attribute_values = [
+        DisclosedValue(id=id, value=value)
+        for id, value in extract_attribute_values(result.disclosed[1], exchange.attributes).items()
+    ]
 
     exchange.expire_at = datetime.now(UTC) + timedelta(seconds=settings.exchange_ttl)
 
@@ -182,7 +187,12 @@ async def respond(
 
     reply = ExchangeReply(
         exchange_id=exchange.id,
-        attribute_values=extract_attribute_values(result.disclosed[0], exchange.attributes),
+        attribute_values=[
+            DisclosedValue(id=id, value=value)
+            for id, value in extract_attribute_values(
+                result.disclosed[0], exchange.attributes
+            ).items()
+        ],
     )
     await storage.push_reply(exchange, reply)
     # TODO: notify initiator.

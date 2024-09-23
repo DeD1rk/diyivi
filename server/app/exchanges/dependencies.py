@@ -35,7 +35,7 @@ class Storage(ABC):
 
 
 class MemoryStorage(Storage):
-    def __init__(self):
+    def __init__(self) -> None:
         self._exchanges: dict[str, str] = {}
         self._exchange_replies: defaultdict[str, list[str]] = defaultdict(list)
 

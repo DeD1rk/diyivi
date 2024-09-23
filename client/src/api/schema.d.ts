@@ -4,470 +4,487 @@
  */
 
 export interface paths {
-  '/api/exchanges/create/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Create
-     * @description Create a new exchange.
-     *
-     *     This endpoint allows the initiator to choose configuration options for the exchange.
-     */
-    post: operations['create_api_exchanges_create__post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/exchanges/{exchange_id}/start/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Start
-     * @description Start an exchange by submitting the session result JWT of the initiator's disclosure.
-     */
-    post: operations['start_api_exchanges__exchange_id__start__post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/exchanges/{exchange_id}/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Exchange Info
-     * @description Get information about an exchange, allowing a recipient to decide to respond.
-     */
-    get: operations['get_exchange_info_api_exchanges__exchange_id___get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/exchanges/{exchange_id}/respond/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Respond
-     * @description Submit the session result JWT of a recipient's disclosure.
-     */
-    post: operations['respond_api_exchanges__exchange_id__respond__post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/exchanges/{exchange_id}/result/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Exchange Result
-     * @description Get the result of an exchange.
-     *
-     *     This can be used by the initiator to retrieve the response of the recipient(s).
-     *     A recipient can also use this by providing their `recipient_secret`, although it
-     *     does not provide any new information for them.
-     */
-    get: operations['get_exchange_result_api_exchanges__exchange_id__result__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    "/api/exchanges/create/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create
+         * @description Create a new exchange.
+         *
+         *     This endpoint allows the initiator to choose configuration options for the exchange.
+         */
+        post: operations["create_api_exchanges_create__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exchanges/{exchange_id}/start/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start
+         * @description Start an exchange by submitting the session result JWT of the initiator's disclosure.
+         */
+        post: operations["start_api_exchanges__exchange_id__start__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exchanges/{exchange_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Exchange Info
+         * @description Get information about an exchange, allowing a recipient to decide to respond.
+         */
+        get: operations["get_exchange_info_api_exchanges__exchange_id___get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exchanges/{exchange_id}/respond/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Respond
+         * @description Submit the session result JWT of a recipient's disclosure.
+         */
+        post: operations["respond_api_exchanges__exchange_id__respond__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exchanges/{exchange_id}/result/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Exchange Result
+         * @description Get the result of an exchange.
+         *
+         *     This can be used by the initiator to retrieve the response of the recipient(s).
+         *     A recipient can also use this by providing their `recipient_secret`, although it
+         *     does not provide any new information for them.
+         */
+        get: operations["get_exchange_result_api_exchanges__exchange_id__result__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /** Body_respond_api_exchanges__exchange_id__respond__post */
-    Body_respond_api_exchanges__exchange_id__respond__post: {
-      /** Disclosure session result JWT */
-      disclosure_result: string
-    }
-    /** Body_start_api_exchanges__exchange_id__start__post */
-    Body_start_api_exchanges__exchange_id__start__post: {
-      /** Initiator Secret */
-      initiator_secret: string
-      /** Disclosure session result JWT */
-      disclosure_result: string
-    }
-    /**
-     * CreateExchangeRequest
-     * @description Request body to create an exchange.
-     */
-    CreateExchangeRequest: {
-      /** Attributes */
-      attributes: string[]
-      /**
-       * Public Initiator Attributes
-       * @description Attributes that the recipient already knows about the initiator.
-       *
-       *             This is used to prevent a party B from becoming a man-in-the-middle by forwarding an
-       *             exchange with A to C. The intended recipient should know the value of these attributes
-       *             already, such that party C will notice that a request was initiated by A and not by B,
-       *             if B tries to forward A's request to C.
-       *
-       */
-      public_initiator_attributes: string[]
-    }
-    /**
-     * ExchangeResultResponse
-     * @description Response to a request for an exchange result.
-     */
-    ExchangeResultResponse: {
-      /** Public Initiator Attribute Values */
-      public_initiator_attribute_values: Record<string, never>
-      /** Initiator Attribute Values */
-      initiator_attribute_values: Record<string, never>
-      /**
-       * Replies
-       * @description The disclosed attributes of the recipients.
-       *
-       *             Each element contains the disclosed attributes of one reply.
-       *             The replies are ordered in the order the replies were received in.
-       *
-       */
-      replies: Record<string, never>[]
-    }
-    /**
-     * HTTPExceptionResponse
-     * @description Response model for HTTP exceptions.
-     */
-    HTTPExceptionResponse: {
-      /** Detail */
-      detail: string
-    }
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][]
-    }
-    /**
-     * InitiatorExchangeResponse
-     * @description Information about a newly created exchange for the initiator.
-     */
-    InitiatorExchangeResponse: {
-      /** Id */
-      id: string
-      /** Initiator Secret */
-      initiator_secret: string
-      /**
-       * Request Jwt
-       * @description JWT containing a disclosure request for the initiator.
-       */
-      request_jwt: string
-    }
-    /**
-     * RecipientExchangeResponse
-     * @description Information about an exchange for a recipient.
-     */
-    RecipientExchangeResponse: {
-      /** Attributes */
-      attributes: string[]
-      /** Public Initiator Attribute Values */
-      public_initiator_attribute_values: Record<string, never>
-      /**
-       * Request Jwt
-       * @description JWT containing a disclosure request for the recipient.
-       */
-      request_jwt: string
-    }
-    /**
-     * RecipientResponseResponse
-     * @description Response to a recipient's disclosure.
-     */
-    RecipientResponseResponse: {
-      /** Public Initiator Attribute Values */
-      public_initiator_attribute_values: Record<string, never>
-      /** Initiator Attribute Values */
-      initiator_attribute_values: Record<string, never>
-      /** Response Attribute Values */
-      response_attribute_values: Record<string, never>
-      /**
-       * Recipient Secret
-       * @description Secret for the recipient to maintain access to the exchanged attributes.
-       */
-      recipient_secret: string
-    }
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[]
-      /** Message */
-      msg: string
-      /** Error Type */
-      type: string
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+    schemas: {
+        /** Body_respond_api_exchanges__exchange_id__respond__post */
+        Body_respond_api_exchanges__exchange_id__respond__post: {
+            /** Disclosure session result JWT */
+            disclosure_result: string;
+        };
+        /** Body_start_api_exchanges__exchange_id__start__post */
+        Body_start_api_exchanges__exchange_id__start__post: {
+            /** Initiator Secret */
+            initiator_secret: string;
+            /** Disclosure session result JWT */
+            disclosure_result: string;
+        };
+        /**
+         * CreateExchangeRequest
+         * @description Request body to create an exchange.
+         */
+        CreateExchangeRequest: {
+            /** Attributes */
+            attributes: string[];
+            /**
+             * Public Initiator Attributes
+             * @description Attributes that the recipient already knows about the initiator.
+             *
+             *             This is used to prevent a party B from becoming a man-in-the-middle by forwarding an
+             *             exchange with A to C. The intended recipient should know the value of these attributes
+             *             already, such that party C will notice that a request was initiated by A and not by B,
+             *             if B tries to forward A's request to C.
+             *
+             */
+            public_initiator_attributes: string[];
+        };
+        /**
+         * DisclosedValue
+         * @description A disclosed value of an attribute.
+         */
+        DisclosedValue: {
+            /** Id */
+            id: string;
+            value: components["schemas"]["TranslatedString"];
+        };
+        /**
+         * ExchangeResultResponse
+         * @description Response to a request for an exchange result.
+         */
+        ExchangeResultResponse: {
+            /** Public Initiator Attribute Values */
+            public_initiator_attribute_values: components["schemas"]["DisclosedValue"][];
+            /** Initiator Attribute Values */
+            initiator_attribute_values: components["schemas"]["DisclosedValue"][];
+            /**
+             * Replies
+             * @description The disclosed attributes of the recipients.
+             *
+             *             Each element contains the disclosed attributes of one reply.
+             *             The replies are ordered in the order the replies were received in.
+             *
+             */
+            replies: components["schemas"]["DisclosedValue"][][];
+        };
+        /**
+         * HTTPExceptionResponse
+         * @description Response model for HTTP exceptions.
+         */
+        HTTPExceptionResponse: {
+            /** Detail */
+            detail: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * InitiatorExchangeResponse
+         * @description Information about a newly created exchange for the initiator.
+         */
+        InitiatorExchangeResponse: {
+            /** Id */
+            id: string;
+            /** Initiator Secret */
+            initiator_secret: string;
+            /**
+             * Request Jwt
+             * @description JWT containing a disclosure request for the initiator.
+             */
+            request_jwt: string;
+        };
+        /**
+         * RecipientExchangeResponse
+         * @description Information about an exchange for a recipient.
+         */
+        RecipientExchangeResponse: {
+            /** Attributes */
+            attributes: string[];
+            /** Public Initiator Attribute Values */
+            public_initiator_attribute_values: components["schemas"]["DisclosedValue"][];
+            /**
+             * Request Jwt
+             * @description JWT containing a disclosure request for the recipient.
+             */
+            request_jwt: string;
+        };
+        /**
+         * RecipientResponseResponse
+         * @description Response to a recipient's disclosure.
+         */
+        RecipientResponseResponse: {
+            /** Public Initiator Attribute Values */
+            public_initiator_attribute_values: components["schemas"]["DisclosedValue"][];
+            /** Initiator Attribute Values */
+            initiator_attribute_values: components["schemas"]["DisclosedValue"][];
+            /** Response Attribute Values */
+            response_attribute_values: components["schemas"]["DisclosedValue"][];
+            /**
+             * Recipient Secret
+             * @description Secret for the recipient to maintain access to the exchanged attributes.
+             */
+            recipient_secret: string;
+        };
+        /** TranslatedString */
+        TranslatedString: {
+            "": string;
+            /** Nl */
+            nl: string;
+            /** En */
+            en: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
-  create_api_exchanges_create__post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateExchangeRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['InitiatorExchangeResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  start_api_exchanges__exchange_id__start__post: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        exchange_id: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Body_start_api_exchanges__exchange_id__start__post']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_exchange_info_api_exchanges__exchange_id___get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        exchange_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['RecipientExchangeResponse']
-        }
-      }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  respond_api_exchanges__exchange_id__respond__post: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        exchange_id: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Body_respond_api_exchanges__exchange_id__respond__post']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['RecipientResponseResponse']
-        }
-      }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_exchange_result_api_exchanges__exchange_id__result__get: {
-    parameters: {
-      query: {
-        secret: string
-      }
-      header?: never
-      path: {
-        exchange_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ExchangeResultResponse']
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPExceptionResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+    create_api_exchanges_create__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExchangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InitiatorExchangeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_api_exchanges__exchange_id__start__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exchange_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Body_start_api_exchanges__exchange_id__start__post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exchange_info_api_exchanges__exchange_id___get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exchange_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipientExchangeResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    respond_api_exchanges__exchange_id__respond__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exchange_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Body_respond_api_exchanges__exchange_id__respond__post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipientResponseResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exchange_result_api_exchanges__exchange_id__result__get: {
+        parameters: {
+            query: {
+                secret: string;
+            };
+            header?: never;
+            path: {
+                exchange_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeResultResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

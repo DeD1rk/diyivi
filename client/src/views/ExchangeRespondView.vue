@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUpdated, ref } from 'vue'
+import { computed, ref } from 'vue'
 import client from '@/api'
 import type { RecipientExchangeResponse, RecipientResponseResponse } from '@/api/types'
 import { useToast } from '@/components/ui/toast'
@@ -8,6 +8,7 @@ import router from '@/router'
 
 import ConfirmationDialog from '@/components/confirmation/ConfirmationDialog.vue'
 import ResponseDisclosureView from './exchange/ResponseDisclosureView.vue'
+import { attributeDisplayOptions, publicAttributeDisplayOptions } from '@/lib/attributes'
 
 const props = defineProps<{
   exchangeId: string
@@ -48,6 +49,15 @@ async function loadExchange() {
 const cancelDialogOpen = ref(false)
 const continueDialogOpen = ref(false)
 
+const firstAttribute = computed(() => {
+  if (!exchange.value) return null
+  for (let [id, label] of Object.entries(publicAttributeDisplayOptions)) {
+    let disclosedValue = exchange.value.public_initiator_attribute_values.find((v) => v.id === id)
+    if (disclosedValue) return { ...label, value: disclosedValue.value }
+  }
+  return null
+})
+
 loadExchange()
 </script>
 <template>
@@ -60,12 +70,17 @@ loadExchange()
     <template v-else>
       <h1 class="text-xl font-bold mt-4 mb-2">Gegevens uitwisselen</h1>
       <p>
-        ... wil graag gegevens met je uitwisselen. Als je hiermee akkoord gaat krijgen jullie de
+        Iemand
+        <template v-if="firstAttribute"
+          >met {{ firstAttribute.label }}
+          <span class="font-semibold">{{ firstAttribute.value.nl }}</span></template
+        >
+        wil graag gegevens met je uitwisselen. Als je hiermee akkoord gaat krijgen jullie de
         volgende gegevens van elkaar te zien:
       </p>
       <ul class="list-disc list-inside mt-4 ps-2 font-semibold">
         <li v-for="(attribute, index) of exchange!.attributes" :key="index">
-          {{ attribute }}
+          {{ attributeDisplayOptions[attribute]?.label }}
         </li>
       </ul>
       <template v-if="!confirmed">
@@ -92,16 +107,22 @@ loadExchange()
     <template #confirm>Ja, ik deel niets</template>
   </ConfirmationDialog>
   <ConfirmationDialog
-    title="Weet je zeker dat je je gegevens niet wil delen?"
+    :title="`Herken je ${firstAttribute?.value.nl}?`"
     v-model="continueDialogOpen"
     @confirm="() => (confirmed = true)"
   >
     <template #description>
-      <p>Heb je de link naar deze pagina gekregen van iemand met ...?</p>
+      <p>
+        Heb je de link naar deze pagina gekregen van iemand
+        <template v-if="firstAttribute"
+          >met {{ firstAttribute.label }}
+          <span class="font-semibold">{{ firstAttribute.value.nl }}</span></template
+        >?
+      </p>
       <p class="mt-2">
         Als je de uitnodiging
-        <i>niet</i> van ... hebt gekregen, dan probeert iemand zich misschien voor te doen als een
-        ander. Deel dan je gegevens niet!
+        <i>niet</i> via dat {{ firstAttribute?.label }} hebt gekregen, dan probeert iemand zich
+        misschien voor te doen als een ander. Deel dan je gegevens niet!
       </p>
     </template>
   </ConfirmationDialog>

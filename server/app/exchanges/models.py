@@ -5,7 +5,15 @@ from pydantic import BaseModel, Field, model_validator
 
 from app.yivi.models import Attribute, Timestamp, TranslatedString
 
-DisclosedValues = dict[Attribute, TranslatedString]
+
+class DisclosedValue(BaseModel):
+    """A disclosed value of an attribute."""
+
+    id: Attribute
+    value: TranslatedString
+
+
+DisclosedValues = list[DisclosedValue]
 
 
 class Exchange(BaseModel):
@@ -63,7 +71,7 @@ class Exchange(BaseModel):
     @model_validator(mode="after")
     def check_initiator_attribute_values_match(self) -> Self:
         if self.initiator_attribute_values is not None and set(
-            self.initiator_attribute_values.keys()
+            value.id for value in self.initiator_attribute_values
         ) != set(self.attributes):
             raise ValueError(
                 "Initiator's disclosed attributes do not match the exchange's attributes"
@@ -73,7 +81,7 @@ class Exchange(BaseModel):
     @model_validator(mode="after")
     def check_public_initiator_attribute_values_match(self) -> Self:
         if self.public_initiator_attribute_values is not None and set(
-            self.public_initiator_attribute_values.keys()
+            value.id for value in self.public_initiator_attribute_values
         ) != set(self.public_initiator_attributes):
             raise ValueError(
                 "Initiator's disclosed public attributes do not match the exchange's attributes"
