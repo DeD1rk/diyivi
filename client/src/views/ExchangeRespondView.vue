@@ -67,7 +67,7 @@ loadExchange()
       <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling niet gevonden</h1>
       <p>De uitwisseling die je probeert te openen bestaat niet meer of is al voltooid.</p>
     </template>
-    <template v-else>
+    <template v-else-if="!result">
       <h1 class="text-xl font-bold mt-4 mb-2">Gegevens uitwisselen</h1>
       <p>
         Iemand
@@ -92,7 +92,32 @@ loadExchange()
           <Button @click="() => (continueDialogOpen = true)">Ja, ga door</Button>
         </div>
       </template>
-      <ResponseDisclosureView v-else :exchangeId :exchange="exchange!"></ResponseDisclosureView>
+      <ResponseDisclosureView
+        v-else
+        :exchangeId
+        :exchange="exchange!"
+        @result="(r) => (result = r)"
+      ></ResponseDisclosureView>
+    </template>
+    <template v-else>
+      <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling gelukt</h1>
+      <p>
+        Gefeliciteerd! Je hebt gegevens uitgewisseld. Dit zijn de gegevens die je van de ander hebt
+        ontvangen:
+      </p>
+      <ul class="mt-4">
+        <li v-for="(attribute, index) of result!.initiator_attribute_values" :key="index">
+          <span class="font-semibold">{{ attributeDisplayOptions[attribute.id]?.label }}:</span>
+          {{ attribute.value.nl }}
+        </li>
+      </ul>
+      <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen.</p>
+      <ul class="mt-4">
+        <li v-for="(attribute, index) of result!.response_attribute_values" :key="index">
+          <span class="font-semibold">{{ attributeDisplayOptions[attribute.id]?.label }}:</span>
+          {{ attribute.value.nl }}
+        </li>
+      </ul>
     </template>
   </div>
   <ConfirmationDialog
