@@ -9,6 +9,8 @@ import { attributeOptions, publicAttributeOptions } from '@/lib/attributes'
 import { Loader2 } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast'
 import type { InitiatorExchangeResponse } from '@/api/types'
+import Title from '@/components/Title.vue'
+import Header from '@/components/Header.vue'
 
 const emit = defineEmits<{
   created: [exchange: InitiatorExchangeResponse]
@@ -60,13 +62,13 @@ async function createExchange() {
 </script>
 <template>
   <div class="p-8">
-    <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling aanmaken</h1>
+    <Title>Uitwisseling aanmaken</Title>
     <p>
       Je maakt een verzoek om gegevens uit te wisselen. Jij kiest welke gegevens uitgewisseld
       worden. Je toont eerst zelf je gegevens. Daarna krijg je een link om naar iemand anders te
       sturen. Als diegene ook diens gegevens deelt, krijgen jullie allebei elkaars gegevens te zien.
     </p>
-    <h2 class="text-lg font-bold mt-4 mb-2">Hoe kent de ontvanger je?</h2>
+    <Header>Hoe kent de ontvanger je?</Header>
     <div>
       <p class="text-sm">
         Deze informatie krijgt de ontvanger al te zien voordat diegene besluit gegevens te delen. Zo
@@ -89,7 +91,7 @@ async function createExchange() {
       </RadioGroup>
     </div>
 
-    <h2 class="text-lg font-bold mt-4 mb-2">Welke gegevens wil je uitwisselen?</h2>
+    <Header>Welke gegevens wil je uitwisselen?</Header>
     <div>
       <p class="text-sm">
         Deze informatie krijgen jullie allebei pas te zien nadat jullie allebei hebben besloten

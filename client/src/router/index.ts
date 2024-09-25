@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import InitiatorExchangeView from '../views/InitiatorExchangeView.vue'
-import ExchangeRespondView from '../views/ExchangeRespondView.vue'
+import InitiatorView from '../views/exchange/InitiatorView.vue'
+import RespondView from '../views//exchange/RespondView.vue'
 import AboutView from '../views/AboutView.vue'
 
 const router = createRouter({
@@ -14,12 +14,12 @@ const router = createRouter({
     },
     {
       path: '/exchange/start/',
-      component: InitiatorExchangeView
+      component: InitiatorView
     },
     {
       path: '/exchange/respond/:exchangeId/',
       name: 'exchange-respond',
-      component: ExchangeRespondView,
+      component: RespondView,
       props: true
     },
     {

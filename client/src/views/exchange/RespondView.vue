@@ -6,9 +6,10 @@ import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import router from '@/router'
 
-import ConfirmationDialog from '@/components/confirmation/ConfirmationDialog.vue'
-import ResponseDisclosureView from './exchange/ResponseDisclosureView.vue'
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
+import ResponseDisclosureView from './ResponseDisclosureView.vue'
 import { attributeDisplayOptions, publicAttributeDisplayOptions } from '@/lib/attributes'
+import Title from '@/components/Title.vue'
 
 const props = defineProps<{
   exchangeId: string
@@ -64,11 +65,11 @@ loadExchange()
   <div class="p-8">
     <div v-if="isLoading" class="flex justify-center">Aan het laden...</div>
     <template v-else-if="notFound">
-      <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling niet gevonden</h1>
+      <Title>Uitwisseling niet gevonden</Title>
       <p>De uitwisseling die je probeert te openen bestaat niet meer of is al voltooid.</p>
     </template>
     <template v-else-if="!result">
-      <h1 class="text-xl font-bold mt-4 mb-2">Gegevens uitwisselen</h1>
+      <Title>Gegevens uitwisselen</Title>
       <p>
         Iemand
         <template v-if="firstAttribute"
@@ -100,7 +101,7 @@ loadExchange()
       ></ResponseDisclosureView>
     </template>
     <template v-else>
-      <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling gelukt</h1>
+      <Title>Uitwisseling gelukt</Title>
       <p>
         Gefeliciteerd! Je hebt gegevens uitgewisseld. Dit zijn de gegevens die je van de ander hebt
         ontvangen:
@@ -111,7 +112,7 @@ loadExchange()
           {{ attribute.value.nl }}
         </li>
       </ul>
-      <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen.</p>
+      <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen:</p>
       <ul class="mt-4">
         <li v-for="(attribute, index) of result!.response_attribute_values" :key="index">
           <span class="font-semibold">{{ attributeDisplayOptions[attribute.id]?.label }}:</span>
@@ -121,7 +122,7 @@ loadExchange()
     </template>
   </div>
   <ConfirmationDialog
-    title="Weet je zeker dat je je gegevens niet wil delen?"
+    title="Geen gegevens delen?"
     v-model="cancelDialogOpen"
     @confirm="() => router.push('/')"
   >
@@ -129,7 +130,7 @@ loadExchange()
       Je hoeft je gegevens niet te delen als je dat niet wil. Als je niets deelt, krijgen jij en
       degene die de uitnodiging heeft gemaakt elkaars gegevens niet te zien.
     </template>
-    <template #confirm>Ja, ik deel niets</template>
+    <template #confirm>Deel niets</template>
   </ConfirmationDialog>
   <ConfirmationDialog
     :title="`Herken je ${firstAttribute?.value.nl}?`"
