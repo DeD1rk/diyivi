@@ -13,6 +13,7 @@ from app.exchanges.models import (
     Exchange,
     ExchangeReply,
     ExchangeResultResponse,
+    ExchangeType,
     InitiatorExchangeResponse,
     RecipientExchangeResponse,
     RecipientResponseResponse,
@@ -43,6 +44,7 @@ async def create(
     # from, or even a system where additional attributes need to be disclosed to DIYivi, in order to
     # authorize asking for sensitive attributes.
     exchange = Exchange(
+        type=exchange_request.type,
         public_initiator_attributes=exchange_request.public_initiator_attributes,
         public_initiator_attribute_values=None,
         attributes=exchange_request.attributes,
@@ -134,12 +136,16 @@ async def start(
 )
 async def get_exchange_info(
     exchange: Annotated[Exchange, Depends(get_exchange)],
+    storage: Annotated[Storage, Depends(get_storage)],
 ) -> RecipientExchangeResponse:
     """Get information about an exchange, allowing a recipient to decide to respond."""
     if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
 
-    # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
+    if exchange.type == ExchangeType.ONE_TO_ONE:
+        replies = await storage.get_replies(exchange.id)
+        if replies:
+            raise HTTPException(status_code=404, detail="Exchange not found")
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
@@ -173,7 +179,12 @@ async def respond(
     """Submit the session result JWT of a recipient's disclosure."""
     if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
-    # TODO: Check if responding is still allowed (disallow multiple responses on a 1-to-1 exchange).
+
+    if exchange.type == ExchangeType.ONE_TO_ONE:
+        # TODO: prevent race condition that could allow saving multiple replies.
+        replies = await storage.get_replies(exchange.id)
+        if replies:
+            raise HTTPException(status_code=404, detail="Exchange not found")
 
     try:
         result = DisclosureSessionResultJWT.parse_jwt(disclosure_result)
@@ -222,19 +233,23 @@ async def get_exchange_result(
     A recipient can also use this by providing their `recipient_secret`, although it
     does not provide any new information for them.
     """
-    # TODO: In a many-to-many exchange, the recipients can use this to get the result of the others.
     if not exchange.started:
         raise HTTPException(status_code=404, detail="Exchange not found")
 
     replies = await storage.get_replies(exchange.id)
 
-    if exchange.initiator_secret != secret and secret not in [
+    if secret != exchange.initiator_secret and secret not in [
         reply.recipient_secret for reply in replies
     ]:
         raise HTTPException(status_code=404, detail="Exchange not found")
 
+    if secret != exchange.initiator_secret and exchange.type == ExchangeType.ONE_TO_ONE:
+        visible_replies = [next(reply for reply in replies if secret == reply.recipient_secret)]
+    else:
+        visible_replies = replies
+
     return ExchangeResultResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
         initiator_attribute_values=exchange.initiator_attribute_values,  # type: ignore
-        replies=[reply.attribute_values for reply in replies],
+        replies=[reply.attribute_values for reply in visible_replies],
     )

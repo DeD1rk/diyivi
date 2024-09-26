@@ -1,9 +1,16 @@
 import secrets
+from enum import StrEnum
 from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
 
 from app.yivi.models import Attribute, Timestamp, TranslatedString
+
+
+class ExchangeType(StrEnum):
+    ONE_TO_ONE = "1-to-1"
+    # ONE_TO_MANY = "1-to-many"
+    # MANY_TO_MANY = "many-to-many"
 
 
 class DisclosedValue(BaseModel):
@@ -25,6 +32,8 @@ class Exchange(BaseModel):
         pattern="^[0-9a-f]{16}$",
         default_factory=lambda: secrets.token_hex(8),
     )
+
+    type: ExchangeType
 
     initiator_secret: str = Field(
         description="Secret used to access the exchange as initiator.",
@@ -125,6 +134,8 @@ class ExchangeReply(BaseModel):
 
 class CreateExchangeRequest(BaseModel):
     """Request body to create an exchange."""
+
+    type: ExchangeType = Field(default=ExchangeType.ONE_TO_ONE)
 
     # TODO: these can be replaced with pointers to predefined sets of attributes,
     #  or get validation based on configurable whitelisted attributes.

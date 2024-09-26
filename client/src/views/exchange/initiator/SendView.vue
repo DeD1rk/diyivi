@@ -5,7 +5,6 @@ import Title from '@/components/Title.vue'
 import { useToast } from '@/components/ui/toast'
 import { useTimeoutPoll } from '@vueuse/core'
 import { computed } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   replied: [reply: ExchangeReply]

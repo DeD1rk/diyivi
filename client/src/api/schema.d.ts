@@ -131,6 +131,8 @@ export interface components {
          * @description Request body to create an exchange.
          */
         CreateExchangeRequest: {
+            /** @default 1-to-1 */
+            type: components["schemas"]["ExchangeType"];
             /** Attributes */
             attributes: string[];
             /**
@@ -173,6 +175,12 @@ export interface components {
              */
             replies: components["schemas"]["DisclosedValue"][][];
         };
+        /**
+         * ExchangeType
+         * @constant
+         * @enum {string}
+         */
+        ExchangeType: "1-to-1";
         /**
          * HTTPExceptionResponse
          * @description Response model for HTTP exceptions.
