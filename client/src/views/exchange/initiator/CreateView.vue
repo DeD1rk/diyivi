@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue' // Import defineEmits from vue
+import { ref } from 'vue'
 import client from '@/api'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'

@@ -7,7 +7,7 @@ import Toaster from '@/components/ui/toast/Toaster.vue'
 <template>
   <div class="min-h-screen flex flex-col">
     <Navbar />
-    <div class="max-w-screen-sm mx-auto bg-background grow w-full">
+    <div class="max-w-screen-sm lg:max-w-screen-md mx-auto bg-background grow w-full">
       <RouterView />
     </div>
   </div>
