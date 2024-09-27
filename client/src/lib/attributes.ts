@@ -4,12 +4,12 @@ export const publicAttributeOptions: {
   mobilenumber: {
     label: 'Mobiel telefoonnumer',
     description: 'Bijvoorbeeld via WhatsApp of Signal.',
-    attributeId: 'irma-demo.sidn-pbdf.mobilenumber.mobilenumber'
+    attributeId: 'pbdf.sidn-pbdf.mobilenumber.mobilenumber'
   },
   email: {
     label: 'E-mailadres',
     description: null,
-    attributeId: 'irma-demo.sidn-pbdf.email.email'
+    attributeId: 'pbdf.sidn-pbdf.email.email'
   }
 }
 
@@ -18,20 +18,21 @@ export const attributeOptions: {
 } = {
   name: {
     label: 'Volledige naam',
-    attributeId: 'irma-demo.gemeente.personalData.fullname'
+    attributeId: 'pbdf.gemeente.personalData.fullname'
   },
   birthdate: {
     label: 'Geboortedatum',
-    attributeId: 'irma-demo.gemeente.personalData.dateofbirth'
+    attributeId: 'pbdf.gemeente.personalData.dateofbirth'
   },
   mobilenumber: {
     label: 'Mobiel telefoonnumer',
-    attributeId: 'irma-demo.sidn-pbdf.mobilenumber.mobilenumber'
+    attributeId: 'pbdf.sidn-pbdf.mobilenumber.mobilenumber'
   },
   email: {
     label: 'E-mailadres',
-    attributeId: 'irma-demo.sidn-pbdf.email.email'
+    attributeId: 'pbdf.sidn-pbdf.email.email'
   }
+  // TODO: adres
 }
 
 export const publicAttributeDisplayOptions: {
@@ -39,16 +40,16 @@ export const publicAttributeDisplayOptions: {
     label: string
   }
 } = {
-  'irma-demo.gemeente.personalData.fullname': {
+  'pbdf.gemeente.personalData.fullname': {
     label: 'naam'
   },
-  'irma-demo.gemeente.personalData.dateofbirth': {
+  'pbdf.gemeente.personalData.dateofbirth': {
     label: 'geboortedatum'
   },
-  'irma-demo.sidn-pbdf.mobilenumber.mobilenumber': {
+  'pbdf.sidn-pbdf.mobilenumber.mobilenumber': {
     label: 'mobiel telefoonnummer'
   },
-  'irma-demo.sidn-pbdf.email.email': {
+  'pbdf.sidn-pbdf.email.email': {
     label: 'e-mailadres'
   }
 }
@@ -58,16 +59,17 @@ export const attributeDisplayOptions: {
     label: string
   }
 } = {
-  'irma-demo.gemeente.personalData.fullname': {
+  'pbdf.gemeente.personalData.fullname': {
     label: 'Volledige naam'
   },
-  'irma-demo.gemeente.personalData.dateofbirth': {
+  'pbdf.gemeente.personalData.dateofbirth': {
     label: 'Geboortedatum'
   },
-  'irma-demo.sidn-pbdf.mobilenumber.mobilenumber': {
+  'pbdf.sidn-pbdf.mobilenumber.mobilenumber': {
     label: 'Mobiel telefoonnummer'
   },
-  'irma-demo.sidn-pbdf.email.email': {
+  'pbdf.sidn-pbdf.email.email': {
     label: 'E-mailadres'
   }
+  // TODO: adres
 }
