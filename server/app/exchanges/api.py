@@ -61,11 +61,7 @@ async def create(
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
-            request=DisclosureRequest(
-                disclose=condiscon,
-                clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
-                augmentReturnUrl=True,
-            ),
+            request=DisclosureRequest(disclose=condiscon),
         ),
     ).signed_jwt()
 
@@ -160,8 +156,6 @@ async def get_exchange_info(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
                 disclose=create_condiscon(exchange.attributes),
-                clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
-                augmentReturnUrl=True,
             ),
         ),
     ).signed_jwt()
