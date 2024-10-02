@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import client from '@/api'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -60,6 +60,8 @@ async function createExchange() {
     isCreating.value = false
   }
 }
+
+const noAttributesSelected = computed(() => selectedAttributes.value.size === 0)
 </script>
 <template>
   <div class="p-8">
@@ -117,7 +119,7 @@ async function createExchange() {
       </div>
     </div>
 
-    <Button @click="createExchange" class="mt-4" :disabled="isCreating">
+    <Button @click="createExchange" :disabled="isCreating || noAttributesSelected" class="mt-4">
       <Loader2 v-if="isCreating" class="w-4 h-4 mr-2 animate-spin" />
       Ga door naar stap 3
     </Button>
