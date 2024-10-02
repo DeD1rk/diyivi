@@ -65,11 +65,11 @@ loadExchange()
   <div class="p-8">
     <div v-if="isLoading" class="flex justify-center">Aan het laden...</div>
     <template v-else-if="notFound">
-      <Title>Uitwisseling niet gevonden</Title>
-      <p>De uitwisseling die je probeert te openen bestaat niet meer of is al voltooid.</p>
+      <Title>Uitnodiging niet gevonden</Title>
+      <p>De uitnodiging die je probeert te openen bestaat niet meer of is al voltooid.</p>
     </template>
     <template v-else-if="!result">
-      <Title>Gegevens uitwisselen</Title>
+      <Title>Elkaar leren kennen</Title>
       <p>
         Iemand
         <template v-if="firstAttribute"
@@ -101,7 +101,7 @@ loadExchange()
       ></ResponseDisclosureView>
     </template>
     <template v-else>
-      <Title>Uitwisseling gelukt</Title>
+      <Title>Elkaar leren kennen</Title>
       <p>
         Gefeliciteerd! Je hebt gegevens uitgewisseld. Dit zijn de gegevens die je van de ander hebt
         ontvangen:

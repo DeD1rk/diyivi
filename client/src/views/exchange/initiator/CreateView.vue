@@ -33,6 +33,7 @@ async function createExchange() {
     await new Promise((resolve) => setTimeout(resolve, 1000))
     const { data, error } = await client.POST('/api/exchanges/create/', {
       body: {
+        type: '1-to-1',
         attributes: [...selectedAttributes.value].map(
           (attribute) => attributeOptions[attribute]!.attributeId
         ),
@@ -62,18 +63,20 @@ async function createExchange() {
 </script>
 <template>
   <div class="p-8">
-    <Title>Uitwisseling aanmaken</Title>
+    <Title>Elkaar leren kennen</Title>
     <p>
-      Je maakt een verzoek om gegevens uit te wisselen. Jij kiest welke gegevens uitgewisseld
-      worden. Je toont eerst zelf je gegevens. Daarna krijg je een link om naar iemand anders te
-      sturen. Als diegene ook diens gegevens deelt, krijgen jullie allebei elkaars gegevens te zien.
+      Jij neemt het initiatief. Jij kiest welke persoonlijke details je met een andere persoon uit
+      wil wisselen. Je toont eerst jouw eigen persoonlijke gegevens aan deze website. Daarna krijg
+      je een link om naar de ander te sturen. Pas als die andere persoon ook dezelfde gegevens aan
+      deze website onthult, krijgen jullie allebei elkaars gegevens te zien.
     </p>
-    <Header>Hoe kent de ontvanger je?</Header>
+    <Header>Stap 1: Hoe hebben jij en de ander contact?</Header>
+    <p class="text-sm">
+      Deze informatie krijgt de ander al te zien voordat diegene besluit gegevens te delen. Zo weet
+      die persoon zeker dat jij degene bent die de link heeft gestuurd. Je krijgt sowieso een e-mail
+      als jullie gegevens hebben uitgewisseld.
+    </p>
     <div>
-      <p class="text-sm">
-        Deze informatie krijgt de ontvanger al te zien voordat diegene besluit gegevens te delen. Zo
-        weet de ontvanger zeker dat jij degene bent die de link heeft gestuurd.
-      </p>
       <RadioGroup v-model="publicAttribute" class="mt-4 mb-2">
         <div
           v-for="({ label, description }, attribute) in publicAttributeOptions"
@@ -91,7 +94,7 @@ async function createExchange() {
       </RadioGroup>
     </div>
 
-    <Header>Welke gegevens wil je uitwisselen?</Header>
+    <Header>Stap 2: Welke details wil je uitwisselen?</Header>
     <div>
       <p class="text-sm">
         Deze informatie krijgen jullie allebei pas te zien nadat jullie allebei hebben besloten
@@ -116,7 +119,7 @@ async function createExchange() {
 
     <Button @click="createExchange" class="mt-4" :disabled="isCreating">
       <Loader2 v-if="isCreating" class="w-4 h-4 mr-2 animate-spin" />
-      Aanmaken
+      Ga door naar stap 3
     </Button>
   </div>
 </template>

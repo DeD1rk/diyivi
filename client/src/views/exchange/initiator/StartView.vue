@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { defineEmits, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { InitiatorExchangeResponse } from '@/api/types'
 import { useToast } from '@/components/ui/toast'
 
 // @ts-ignore
 import yivi from '@privacybydesign/yivi-frontend'
 import client from '@/api'
+import Title from '@/components/Title.vue'
+import Header from '@/components/Title.vue'
 
 const props = defineProps<{
   exchange: InitiatorExchangeResponse
@@ -78,7 +80,14 @@ onMounted(async () => {
 
 <template>
   <div class="p-8">
-    <h1 class="text-xl font-bold mt-4 mb-2">Uitwisseling beginnen</h1>
+    <Title>Elkaar leren kennen </Title>
+    <p>
+      Jij neemt het initiatief. Jij kiest welke persoonlijke details je met een andere persoon uit
+      wil wisselen. Je toont eerst jouw eigen persoonlijke gegevens aan deze website. Daarna krijg
+      je een link om naar de ander te sturen. Pas als die andere persoon ook dezelfde gegevens aan
+      deze website onthult, krijgen jullie allebei elkaars gegevens te zien.
+    </p>
+    <Header>Stap 3: Deel je eigen gegevens</Header>
     <p>Toon nu je eigen gegevens met Yivi.</p>
     <div class="flex justify-center mt-16">
       <div id="yivi-web-form"></div>
