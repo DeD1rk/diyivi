@@ -34,6 +34,7 @@ async function createExchange() {
     const { data, error } = await client.POST('/api/exchanges/create/', {
       body: {
         type: '1-to-1',
+        send_email: true,
         attributes: [...selectedAttributes.value].map(
           (attribute) => attributeOptions[attribute]!.attributeId
         ),

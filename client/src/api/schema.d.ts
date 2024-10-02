@@ -133,6 +133,8 @@ export interface components {
         CreateExchangeRequest: {
             /** @default 1-to-1 */
             type: components["schemas"]["ExchangeType"];
+            /** Send Email */
+            send_email: boolean;
             /** Attributes */
             attributes: string[];
             /**

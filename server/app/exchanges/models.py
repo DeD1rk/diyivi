@@ -73,6 +73,20 @@ class Exchange(BaseModel):
         """,
     )
 
+    send_email: bool = Field(
+        description="""Whether any replies should be sent by email to the initiator.
+
+        If True, the initiator's disclosure will require an email attribute,
+        regardless of the `public_initiator_attributes`. However, if the email attribute
+        is also in `public_initiator_attributes`, that same address will be used to not
+        confuse the user about where to provide which address.
+        """
+    )
+
+    initiator_email_value: str | None = Field(
+        default=None,
+        description="The initiator's disclosed email address, if `send_email` is set.",
+    )
     expire_at: Timestamp = Field(
         description="Unix timestamp indicating when this exchange will be removed.",
     )
@@ -137,8 +151,9 @@ class CreateExchangeRequest(BaseModel):
 
     type: ExchangeType = Field(default=ExchangeType.ONE_TO_ONE)
 
-    # TODO: these can be replaced with pointers to predefined sets of attributes,
-    #  or get validation based on configurable whitelisted attributes.
+    send_email: bool
+
+    # TODO: whitelist for all attributes?
     attributes: list[Attribute] = Field(min_length=1)
 
     public_initiator_attributes: list[Attribute] = Field(

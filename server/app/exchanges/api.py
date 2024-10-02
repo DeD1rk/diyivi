@@ -18,13 +18,13 @@ from app.exchanges.models import (
     RecipientExchangeResponse,
     RecipientResponseResponse,
 )
+from app.exchanges.utils import create_condiscon
 from app.models import HTTPExceptionResponse
 from app.yivi.models import (
     DisclosureRequest,
     DisclosureRequestJWT,
     DisclosureSessionResultJWT,
     ExtendedDisclosureRequest,
-    extract_attribute_values,
 )
 
 router = APIRouter()
@@ -45,6 +45,7 @@ async def create(
     # authorize asking for sensitive attributes.
     exchange = Exchange(
         type=exchange_request.type,
+        send_email=exchange_request.send_email,
         public_initiator_attributes=exchange_request.public_initiator_attributes,
         public_initiator_attribute_values=None,
         attributes=exchange_request.attributes,
@@ -53,13 +54,15 @@ async def create(
     )
     await storage.save_exchange(exchange)
 
+    condiscon = create_condiscon(
+        ([settings.email_attribute] if exchange.send_email else [])
+        + [*exchange.public_initiator_attributes, *exchange.attributes]
+    )
+
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
-                disclose=[
-                    [exchange.public_initiator_attributes],
-                    [exchange.attributes],
-                ],
+                disclose=condiscon,
                 clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
@@ -101,24 +104,30 @@ async def start(
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     if not result.satisfies_condiscon(
-        [[exchange.public_initiator_attributes], [exchange.attributes]],
+        create_condiscon(
+            [settings.email_attribute, *exchange.public_initiator_attributes, *exchange.attributes]
+            if exchange.send_email
+            else [*exchange.public_initiator_attributes, *exchange.attributes]
+        )
     ):
         raise HTTPException(status_code=400, detail="Invalid session result")
 
-    # Extract the disclosed attributes corresponding to (a) the disjunction for the
-    # public initiator attributes and (b) the disjunctions for the other attributes.
-    # Since we put the public initiator attributes first, in the session request JWTs,
-    # they are guaranteed to also be in the first element of the disclosed attributes.
+    disclosed_values = {
+        disclosed_attribute.id: disclosed_attribute
+        for con in result.disclosed
+        for disclosed_attribute in con
+    }
+
     exchange.public_initiator_attribute_values = [
-        DisclosedValue(id=id, value=value)
-        for id, value in extract_attribute_values(
-            result.disclosed[0], exchange.public_initiator_attributes
-        ).items()
+        DisclosedValue(id=id, value=disclosed_values[id].value)
+        for id in exchange.public_initiator_attributes
     ]
     exchange.initiator_attribute_values = [
-        DisclosedValue(id=id, value=value)
-        for id, value in extract_attribute_values(result.disclosed[1], exchange.attributes).items()
+        DisclosedValue(id=id, value=disclosed_values[id].value) for id in exchange.attributes
     ]
+
+    if exchange.send_email:
+        exchange.initiator_email_value = disclosed_values[settings.email_attribute].rawvalue
 
     exchange.expire_at = datetime.now(UTC) + timedelta(seconds=settings.exchange_ttl)
 
@@ -150,7 +159,7 @@ async def get_exchange_info(
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
             request=DisclosureRequest(
-                disclose=[[exchange.attributes]],
+                disclose=create_condiscon(exchange.attributes),
                 clientReturnUrl=f"{settings.base_url}exchanges/{exchange.id}/",
                 augmentReturnUrl=True,
             ),
@@ -193,20 +202,26 @@ async def respond(
     except ValidationError:
         raise HTTPException(status_code=400, detail="Invalid session result")
 
-    if not result.satisfies_condiscon([[exchange.attributes]]):
+    if not result.satisfies_condiscon(create_condiscon(exchange.attributes)):
         raise HTTPException(status_code=400, detail="Invalid session result")
+
+    disclosed_values = {
+        disclosed_attribute.id: disclosed_attribute
+        for con in result.disclosed
+        for disclosed_attribute in con
+    }
 
     reply = ExchangeReply(
         exchange_id=exchange.id,
         attribute_values=[
-            DisclosedValue(id=id, value=value)
-            for id, value in extract_attribute_values(
-                result.disclosed[0], exchange.attributes
-            ).items()
+            DisclosedValue(id=id, value=disclosed_values[id].value) for id in exchange.attributes
         ],
     )
     await storage.push_reply(exchange, reply)
-    # TODO: notify initiator.
+
+    if exchange.send_email and exchange.initiator_email_value:
+        # TODO: start backgroundtask to send email
+        print(f"Sending an email with results to {exchange.initiator_email_value}")
 
     return RecipientResponseResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore

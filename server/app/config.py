@@ -70,6 +70,11 @@ class Settings(BaseSettings):
         """,
     )
 
+    email_attribute: str = Field(
+        default="pbdf.sidn-pbdf.email.email",
+        description="Attribute ID for an email address to send emails to.",
+    )
+
 
 settings = Settings()
 
