@@ -10,7 +10,7 @@ const props = defineProps<{
 </script>
 <template>
   <div class="p-8">
-    <Title>Uitwisseling gelukt</Title>
+    <Title>Elkaar leren kennen</Title>
     <p>
       Gefeliciteerd! Iemand heeft gereageerd op je verzoek om gegevens uit te wisselen. Dit zijn de
       gegevens die je hebt ontvangen:

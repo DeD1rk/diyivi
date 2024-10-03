@@ -7,13 +7,22 @@ import SendView from './initiator/SendView.vue'
 import ResultView from './initiator/ResultView.vue'
 
 const exchange = ref<InitiatorExchangeResponse | null>(null)
+const publicAttribute = ref<string | null>(null)
 const started = ref<boolean>(false)
 const reply = ref<ExchangeReply | null>(null)
 </script>
 
 <template>
-  <ExchangeCreateView v-if="!exchange" @created="(e) => (exchange = e)" />
+  <ExchangeCreateView
+    v-if="!exchange || !publicAttribute"
+    @created="
+      (e, attribute) => {
+        exchange = e
+        publicAttribute = attribute
+      }
+    "
+  />
   <ExchangeStartView v-else-if="!started" :exchange @started="() => (started = true)" />
-  <SendView v-else-if="reply === null" :exchange @replied="(r) => (reply = r)" />
+  <SendView v-else-if="reply === null" :exchange :publicAttribute @replied="(r) => (reply = r)" />
   <ResultView v-else :exchange :reply />
 </template>

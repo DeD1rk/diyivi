@@ -13,7 +13,7 @@ import Title from '@/components/Title.vue'
 import Header from '@/components/Header.vue'
 
 const emit = defineEmits<{
-  created: [exchange: InitiatorExchangeResponse]
+  created: [exchange: InitiatorExchangeResponse, publicAttribute: string]
 }>()
 
 const { toast } = useToast()
@@ -43,7 +43,7 @@ async function createExchange() {
     })
 
     if (data) {
-      emit('created', data)
+      emit('created', data, publicAttribute.value)
     } else {
       toast({
         title: 'Oeps! Er ging iets mis',
