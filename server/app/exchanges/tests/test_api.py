@@ -367,7 +367,7 @@ class TestGetExchangeInfo:
         _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
         _storage._exchange_replies[self.exchange.id] = [reply.model_dump_json()]
 
-        response = client.get(f"/api/exchanges/{self.exchange.id}/respond/")
+        response = client.get(f"/api/exchanges/{self.exchange.id}/")
 
         # Adding a second reply to a 1-to-1 exchange is not allowed.
         assert response.status_code == 404

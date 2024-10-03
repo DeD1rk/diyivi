@@ -215,7 +215,7 @@ async def respond(
 
     if exchange.send_email and exchange.initiator_email_value:
         # TODO: start backgroundtask to send email
-        print(f"Sending an email with results to {exchange.initiator_email_value}")
+        print(f"Sending an email with results to {exchange.initiator_email_value}")  # noqa: T201
 
     return RecipientResponseResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
