@@ -15,7 +15,7 @@ Attribute = Annotated[
     Field(
         pattern=r"^([a-zA-Z0-9_-]+\.){3}[a-zA-Z0-9_-]+$",
         examples=[
-            "irma-demo.gemeente.personalData.firstnames",
+            "pbdf.gemeente.personalData.firstnames",
             "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
         ],
     ),

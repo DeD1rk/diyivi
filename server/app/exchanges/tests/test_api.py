@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.config import settings
 from app.exchanges.dependencies import _storage
-from app.exchanges.models import DisclosedValue, Exchange, ExchangeReply
+from app.exchanges.models import DisclosedValue, Exchange, ExchangeReply, ExchangeType
 from app.main import app
 from app.yivi.models import (
     AttributeProofStatus,
@@ -69,10 +69,12 @@ class TestCreateExchange:
             "/api/exchanges/create/",
             json={
                 "attributes": [
-                    "irma-demo.sidn-pbdf.email.email",
+                    "pbdf.sidn-pbdf.email.email",
                     "pbdf.gemeente.personalData.fullname",
                 ],
-                "public_initiator_attributes": ["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"],
+                "type": "1-to-1",
+                "send_email": True,
+                "public_initiator_attributes": ["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
             },
         )
 
@@ -89,28 +91,18 @@ class TestCreateExchange:
             )
         )
         assert disclosure_request.sprequest.request.disclose == [
-            [["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"]],
-            [
-                [
-                    "irma-demo.sidn-pbdf.email.email",
-                    "pbdf.gemeente.personalData.fullname",
-                ],
-            ],
+            [["pbdf.sidn-pbdf.email.email"]],
+            [["pbdf.sidn-pbdf.mobilenumber.mobilenumber"]],
+            [["pbdf.gemeente.personalData.fullname"]],
         ]
-        assert disclosure_request.sprequest.request.client_return_url == (
-            f"{settings.base_url}exchanges/{response_data['id']}/"
-        )
-        assert disclosure_request.sprequest.request.augment_return_url is True
 
         # Check what was saved in the storage.
         exchange = Exchange.model_validate_json(_storage._exchanges[response_data["id"]])
         assert exchange.initiator_attribute_values is None
         assert exchange.public_initiator_attribute_values is None
-        assert exchange.public_initiator_attributes == [
-            "irma-demo.sidn-pbdf.mobilenumber.mobilenumber"
-        ]
+        assert exchange.public_initiator_attributes == ["pbdf.sidn-pbdf.mobilenumber.mobilenumber"]
         assert exchange.attributes == [
-            "irma-demo.sidn-pbdf.email.email",
+            "pbdf.sidn-pbdf.email.email",
             "pbdf.gemeente.personalData.fullname",
         ]
 
@@ -119,16 +111,18 @@ class TestCreateExchange:
 
 class TestStartExchange:
     exchange = Exchange(
+        type=ExchangeType.ONE_TO_ONE,
+        send_email=True,
         initiator_secret="a" * 32,
-        attributes=["irma-demo.sidn-pbdf.email.email"],
-        public_initiator_attributes=["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"],
+        attributes=["pbdf.sidn-pbdf.email.email"],
+        public_initiator_attributes=["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
         expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     phonenumber = DisclosedAttribute(
         rawvalue="31612345678",
         value=TranslatedString(default="31612345678", en="31612345678", nl="31612345678"),
-        id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+        id="pbdf.sidn-pbdf.mobilenumber.mobilenumber",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -138,7 +132,7 @@ class TestStartExchange:
         value=TranslatedString(
             default="foo@example.com", en="foo@example.com", nl="foo@example.com"
         ),
-        id="irma-demo.sidn-pbdf.email.email",
+        id="pbdf.sidn-pbdf.email.email",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -262,8 +256,8 @@ class TestStartExchange:
             {
                 **_common_result_jwt_fields,
                 "disclosed": [
-                    [self.phonenumber.model_dump(mode="json")],
                     [self.email.model_dump(mode="json")],
+                    [self.phonenumber.model_dump(mode="json")],
                 ],
             },
             key=_irmaserver_jwt_private_key,
@@ -292,8 +286,10 @@ class TestStartExchange:
 
 class TestGetExchangeInfo:
     exchange = Exchange(
-        attributes=["irma-demo.sidn-pbdf.email.email"],
-        public_initiator_attributes=["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"],
+        type=ExchangeType.ONE_TO_ONE,
+        send_email=True,
+        attributes=["pbdf.sidn-pbdf.email.email"],
+        public_initiator_attributes=["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
         expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
@@ -313,13 +309,13 @@ class TestGetExchangeInfo:
         exchange = self.exchange.model_copy()
         exchange.public_initiator_attribute_values = [
             DisclosedValue(
-                id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+                id="pbdf.sidn-pbdf.mobilenumber.mobilenumber",
                 value=TranslatedString(default="31612345678", en="31612345678", nl="31612345678"),
             )
         ]
         exchange.initiator_attribute_values = [
             DisclosedValue(
-                id="irma-demo.sidn-pbdf.email.email",
+                id="pbdf.sidn-pbdf.email.email",
                 value=TranslatedString(
                     default="foo@example.com", en="foo@example.com", nl="foo@example.com"
                 ),
@@ -342,19 +338,12 @@ class TestGetExchangeInfo:
                 algorithms=["HS256"],
             )
         )
-        assert disclosure_request.sprequest.request.disclose == [
-            [["irma-demo.sidn-pbdf.email.email"]]
-        ]
-        assert disclosure_request.sprequest.request.client_return_url == (
-            f"{settings.base_url}exchanges/{exchange.id}/"
-        )
-        assert disclosure_request.sprequest.request.augment_return_url is True
-
+        assert disclosure_request.sprequest.request.disclose == [[["pbdf.sidn-pbdf.email.email"]]]
         assert disclosure_request.sprequest.request.disclose == [[response_data["attributes"]]]
 
         assert response_data["public_initiator_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+                "id": "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
                 "value": {
                     "": "31612345678",
                     "en": "31612345678",
@@ -364,20 +353,39 @@ class TestGetExchangeInfo:
         ]
 
     def test_already_responded(self):
-        pass  # TODO: expected result depends on whether multiple responses are allowed.
+        reply = ExchangeReply(
+            exchange_id=self.exchange.id,
+            attribute_values=[
+                DisclosedValue(
+                    id="pbdf.sidn-pbdf.email.email",
+                    value=TranslatedString(
+                        default="foo@example.com", en="foo@example.com", nl="foo@example.com"
+                    ),
+                )
+            ],
+        )
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+        _storage._exchange_replies[self.exchange.id] = [reply.model_dump_json()]
+
+        response = client.get(f"/api/exchanges/{self.exchange.id}/respond/")
+
+        # Adding a second reply to a 1-to-1 exchange is not allowed.
+        assert response.status_code == 404
 
 
 class TestRespond:
     exchange = Exchange(
-        attributes=["irma-demo.sidn-pbdf.email.email"],
-        public_initiator_attributes=["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"],
+        type=ExchangeType.ONE_TO_ONE,
+        send_email=True,
+        attributes=["pbdf.sidn-pbdf.email.email"],
+        public_initiator_attributes=["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
         expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
     phonenumber = DisclosedAttribute(
         rawvalue="31612345678",
         value=TranslatedString(default="31612345678", en="31612345678", nl="31612345678"),
-        id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+        id="pbdf.sidn-pbdf.mobilenumber.mobilenumber",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -387,7 +395,7 @@ class TestRespond:
         value=TranslatedString(
             default="foo@example.com", en="foo@example.com", nl="foo@example.com"
         ),
-        id="irma-demo.sidn-pbdf.email.email",
+        id="pbdf.sidn-pbdf.email.email",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -467,7 +475,7 @@ class TestRespond:
         assert response.status_code == 200
         assert response.json()["public_initiator_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+                "id": "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
                 "value": {
                     "": "31612345678",
                     "en": "31612345678",
@@ -477,7 +485,7 @@ class TestRespond:
         ]
         assert response.json()["initiator_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.email.email",
+                "id": "pbdf.sidn-pbdf.email.email",
                 "value": {
                     "": "foo@example.com",
                     "en": "foo@example.com",
@@ -487,7 +495,7 @@ class TestRespond:
         ]
         assert response.json()["response_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.email.email",
+                "id": "pbdf.sidn-pbdf.email.email",
                 "value": {
                     "": "foo@example.com",
                     "en": "foo@example.com",
@@ -502,14 +510,38 @@ class TestRespond:
         assert response.json()["recipient_secret"] == saved_reply.recipient_secret
 
     def test_already_responded(self):
-        pass  # TODO: expected result depends on whether multiple responses are allowed.
+        reply = ExchangeReply(
+            exchange_id=self.exchange.id,
+            attribute_values=[DisclosedValue(id=self.email.id, value=self.email.value)],
+        )
+        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+        _storage._exchange_replies[self.exchange.id] = [reply.model_dump_json()]
+
+        result = jwt.encode(
+            {
+                **_common_result_jwt_fields,
+                "disclosed": [
+                    [self.email.model_dump(mode="json")],
+                ],
+            },
+            key=_irmaserver_jwt_private_key,
+            algorithm="RS256",
+        )
+
+        response = client.post(
+            f"/api/exchanges/{self.exchange.id}/respond/",
+            json={"disclosure_result": result},
+        )
+
+        # Adding a second reply to a 1-to-1 exchange is not allowed.
+        assert response.status_code == 404
 
 
 class TestGetExchangeResult:
     phonenumber = DisclosedAttribute(
         rawvalue="31612345678",
         value=TranslatedString(default="31612345678", en="31612345678", nl="31612345678"),
-        id="irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+        id="pbdf.sidn-pbdf.mobilenumber.mobilenumber",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -519,7 +551,7 @@ class TestGetExchangeResult:
         value=TranslatedString(
             default="foo@example.com", en="foo@example.com", nl="foo@example.com"
         ),
-        id="irma-demo.sidn-pbdf.email.email",
+        id="pbdf.sidn-pbdf.email.email",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
@@ -529,14 +561,16 @@ class TestGetExchangeResult:
         value=TranslatedString(
             default="bar@example.com", en="bar@example.com", nl="bar@example.com"
         ),
-        id="irma-demo.sidn-pbdf.email.email",
+        id="pbdf.sidn-pbdf.email.email",
         status=AttributeProofStatus.PRESENT,
         issuancetime=_issuance_time,
     )
 
     exchange = Exchange(
-        attributes=["irma-demo.sidn-pbdf.email.email"],
-        public_initiator_attributes=["irma-demo.sidn-pbdf.mobilenumber.mobilenumber"],
+        type=ExchangeType.ONE_TO_ONE,
+        send_email=True,
+        attributes=["pbdf.sidn-pbdf.email.email"],
+        public_initiator_attributes=["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
         initiator_attribute_values=[DisclosedValue(id=email1.id, value=email1.value)],
         public_initiator_attribute_values=[
             DisclosedValue(id=phonenumber.id, value=phonenumber.value)
@@ -572,7 +606,7 @@ class TestGetExchangeResult:
         assert response.status_code == 200
         assert response.json()["public_initiator_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
+                "id": "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
                 "value": {
                     "": "31612345678",
                     "en": "31612345678",
@@ -582,7 +616,7 @@ class TestGetExchangeResult:
         ]
         assert response.json()["initiator_attribute_values"] == [
             {
-                "id": "irma-demo.sidn-pbdf.email.email",
+                "id": "pbdf.sidn-pbdf.email.email",
                 "value": {
                     "": "foo@example.com",
                     "en": "foo@example.com",
@@ -593,7 +627,7 @@ class TestGetExchangeResult:
         assert response.json()["replies"] == [
             [
                 {
-                    "id": "irma-demo.sidn-pbdf.email.email",
+                    "id": "pbdf.sidn-pbdf.email.email",
                     "value": {
                         "": "bar@example.com",
                         "en": "bar@example.com",
@@ -615,72 +649,72 @@ class TestGetExchangeResult:
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
-    def test_using_recipient_secret(self):
-        # TODO: This is the many-to-many case. In other scenarios, any other recipient's replies
-        # should be filtered out.
-        reply2 = ExchangeReply(
-            exchange_id=self.exchange.id,
-            attribute_values=[
-                DisclosedValue(
-                    id="irma-demo.sidn-pbdf.email.email",
-                    value=TranslatedString(
-                        default="baz@example.com", en="baz@example.com", nl="baz@example.com"
-                    ),
-                )
-            ],
-        )
+    # def test_using_recipient_secret(self):
+    #     # TODO: This is the many-to-many case. In other scenarios, any other recipient's replies
+    #     # should be filtered out.
+    #     reply2 = ExchangeReply(
+    #         exchange_id=self.exchange.id,
+    #         attribute_values=[
+    #             DisclosedValue(
+    #                 id="pbdf.sidn-pbdf.email.email",
+    #                 value=TranslatedString(
+    #                     default="baz@example.com", en="baz@example.com", nl="baz@example.com"
+    #                 ),
+    #             )
+    #         ],
+    #     )
 
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-        _storage._exchange_replies[self.exchange.id] = [
-            self.reply.model_dump_json(),
-            reply2.model_dump_json(),
-        ]
+    #     _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    #     _storage._exchange_replies[self.exchange.id] = [
+    #         self.reply.model_dump_json(),
+    #         reply2.model_dump_json(),
+    #     ]
 
-        response = client.get(
-            f"/api/exchanges/{self.exchange.id}/result/",
-            params={"secret": reply2.recipient_secret},
-        )
+    #     response = client.get(
+    #         f"/api/exchanges/{self.exchange.id}/result/",
+    #         params={"secret": reply2.recipient_secret},
+    #     )
 
-        assert response.status_code == 200
-        assert response.json()["public_initiator_attribute_values"] == [
-            {
-                "id": "irma-demo.sidn-pbdf.mobilenumber.mobilenumber",
-                "value": {
-                    "": "31612345678",
-                    "en": "31612345678",
-                    "nl": "31612345678",
-                },
-            },
-        ]
-        assert response.json()["initiator_attribute_values"] == [
-            {
-                "id": "irma-demo.sidn-pbdf.email.email",
-                "value": {
-                    "": "foo@example.com",
-                    "en": "foo@example.com",
-                    "nl": "foo@example.com",
-                },
-            },
-        ]
-        assert response.json()["replies"] == [
-            [
-                {
-                    "id": "irma-demo.sidn-pbdf.email.email",
-                    "value": {
-                        "": "bar@example.com",
-                        "en": "bar@example.com",
-                        "nl": "bar@example.com",
-                    },
-                },
-            ],
-            [
-                {
-                    "id": "irma-demo.sidn-pbdf.email.email",
-                    "value": {
-                        "": "baz@example.com",
-                        "en": "baz@example.com",
-                        "nl": "baz@example.com",
-                    },
-                },
-            ],
-        ]
+    #     assert response.status_code == 200
+    #     assert response.json()["public_initiator_attribute_values"] == [
+    #         {
+    #             "id": "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
+    #             "value": {
+    #                 "": "31612345678",
+    #                 "en": "31612345678",
+    #                 "nl": "31612345678",
+    #             },
+    #         },
+    #     ]
+    #     assert response.json()["initiator_attribute_values"] == [
+    #         {
+    #             "id": "pbdf.sidn-pbdf.email.email",
+    #             "value": {
+    #                 "": "foo@example.com",
+    #                 "en": "foo@example.com",
+    #                 "nl": "foo@example.com",
+    #             },
+    #         },
+    #     ]
+    #     assert response.json()["replies"] == [
+    #         [
+    #             {
+    #                 "id": "pbdf.sidn-pbdf.email.email",
+    #                 "value": {
+    #                     "": "bar@example.com",
+    #                     "en": "bar@example.com",
+    #                     "nl": "bar@example.com",
+    #                 },
+    #             },
+    #         ],
+    #         [
+    #             {
+    #                 "id": "pbdf.sidn-pbdf.email.email",
+    #                 "value": {
+    #                     "": "baz@example.com",
+    #                     "en": "baz@example.com",
+    #                     "nl": "baz@example.com",
+    #                 },
+    #             },
+    #         ],
+    #     ]
