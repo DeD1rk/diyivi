@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query
 from pydantic import ValidationError
 
 from app.config import settings
@@ -26,6 +26,7 @@ from app.yivi.models import (
     DisclosureSessionResultJWT,
     ExtendedDisclosureRequest,
 )
+from server.app.exchanges.email import send_initiator_result_email
 
 router = APIRouter()
 
@@ -178,6 +179,7 @@ async def respond(
     exchange: Annotated[Exchange, Depends(get_exchange)],
     disclosure_result: Annotated[str, Body(title="Disclosure session result JWT", embed=True)],
     storage: Annotated[Storage, Depends(get_storage)],
+    background_tasks: BackgroundTasks,
 ) -> RecipientResponseResponse:
     """Submit the session result JWT of a recipient's disclosure."""
     if not exchange.started:
@@ -214,8 +216,7 @@ async def respond(
     await storage.push_reply(exchange, reply)
 
     if exchange.send_email and exchange.initiator_email_value:
-        # TODO: start backgroundtask to send email
-        print(f"Sending an email with results to {exchange.initiator_email_value}")  # noqa: T201
+        background_tasks.add_task(send_initiator_result_email, exchange)
 
     return RecipientResponseResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore

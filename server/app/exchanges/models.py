@@ -2,7 +2,7 @@ import secrets
 from enum import StrEnum
 from typing import Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.yivi.models import Attribute, Timestamp, TranslatedString
 
@@ -83,7 +83,7 @@ class Exchange(BaseModel):
         """
     )
 
-    initiator_email_value: str | None = Field(
+    initiator_email_value: EmailStr | None = Field(
         default=None,
         description="The initiator's disclosed email address, if `send_email` is set.",
     )

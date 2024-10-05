@@ -13,6 +13,8 @@ uvicorn = "^0.30.1"
 pydantic-settings = "^2.3.4"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
 redis = {extras = ["hiredis"], version = "^5.0.8"}
+aiosmtplib = "^3.0.2"
+email-validator = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.3"

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings
 
 
-class IRMAServerConfig(BaseModel):
+class IRMAServerSettings(BaseModel):
     server_url: HttpUrl = Field(
         description="URL of the IRMA server to use.",
         default="https://irmaserver.diyivi.ddoesburg.nl",
@@ -33,6 +33,12 @@ dzGoU63CTCQZrPw/g8vgNXNr65J7XKQBuEzJOh/3opwxHVjjyb77XeWQOTIQxNcP
     )
 
 
+class SMTPSettings(BaseModel):
+    hostname: str
+    username: str
+    password: str
+
+
 class Settings(BaseSettings):
     base_url: HttpUrl = Field(
         description="Base URL of the DIYivi API.",
@@ -44,7 +50,7 @@ class Settings(BaseSettings):
         default="http://localhost:5173",
     )
 
-    irma: IRMAServerConfig = IRMAServerConfig()
+    irma: IRMAServerSettings = IRMAServerSettings()
 
     redis_url: str | None = Field(
         default=None,
@@ -73,6 +79,15 @@ class Settings(BaseSettings):
     email_attribute: str = Field(
         default="pbdf.sidn-pbdf.email.email",
         description="Attribute ID for an email address to send emails to.",
+    )
+
+    email_from_domain: str = Field(
+        default="localhost", description="Sender domain for outgoing email."
+    )
+
+    smtp: SMTPSettings | None = Field(
+        default=None,
+        description="Configuration for outgoing email.",
     )
 
 
