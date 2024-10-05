@@ -62,6 +62,7 @@ async def create(
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
+            validity=settings.disclosure_request_validity,
             request=DisclosureRequest(disclose=condiscon),
         ),
     ).signed_jwt()
@@ -155,6 +156,7 @@ async def get_exchange_info(
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
+            validity=settings.disclosure_request_validity,
             request=DisclosureRequest(
                 disclose=create_condiscon(exchange.attributes),
             ),

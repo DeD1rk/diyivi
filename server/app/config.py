@@ -76,6 +76,11 @@ class Settings(BaseSettings):
         """,
     )
 
+    disclosure_request_validity: int | None = Field(
+        default=None,
+        description="Time in seconds for which a Yivi disclosure request JWT is valid.",
+    )
+
     email_attribute: str = Field(
         default="pbdf.sidn-pbdf.email.email",
         description="Attribute ID for an email address to send emails to.",
