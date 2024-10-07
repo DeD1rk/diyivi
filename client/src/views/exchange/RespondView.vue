@@ -10,6 +10,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
 import ResponseDisclosureView from './ResponseDisclosureView.vue'
 import { attributeDisplayOptions, publicAttributeDisplayOptions } from '@/lib/attributes'
 import Title from '@/components/Title.vue'
+import AttributeList from '@/components/AttributeList.vue'
 
 const props = defineProps<{
   exchangeId: string
@@ -80,9 +81,14 @@ loadExchange()
         volgende gegevens van elkaar te zien:
       </p>
       <ul class="list-disc list-inside mt-4 ps-2 font-semibold">
-        <li v-for="(attribute, index) of exchange!.attributes" :key="index">
-          {{ attributeDisplayOptions[attribute]?.label }}
-        </li>
+        <template v-for="(option, index) of attributeDisplayOptions">
+          <li
+            v-if="option.requiredAttributes.every((id) => exchange!.attributes.includes(id))"
+            :key="index"
+          >
+            {{ option.label }}
+          </li>
+        </template>
       </ul>
       <template v-if="!confirmed">
         <p class="mt-4 font-semibold">Wil je deze gegevens delen?</p>
@@ -106,19 +112,9 @@ loadExchange()
         Gefeliciteerd! Je hebt gegevens uitgewisseld. Dit zijn de gegevens die je van de ander hebt
         ontvangen:
       </p>
-      <ul class="mt-4">
-        <li v-for="(attribute, index) of result!.initiator_attribute_values" :key="index">
-          <span class="font-semibold">{{ attributeDisplayOptions[attribute.id]?.label }}:</span>
-          {{ attribute.value.nl }}
-        </li>
-      </ul>
+      <AttributeList class="mt-4" :attributes="result!.initiator_attribute_values" />
       <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen:</p>
-      <ul class="mt-4">
-        <li v-for="(attribute, index) of result!.response_attribute_values" :key="index">
-          <span class="font-semibold">{{ attributeDisplayOptions[attribute.id]?.label }}:</span>
-          {{ attribute.value.nl }}
-        </li>
-      </ul>
+      <AttributeList class="mt-4" :attributes="result!.response_attribute_values" />
     </template>
   </div>
   <ConfirmationDialog

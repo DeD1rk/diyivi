@@ -35,8 +35,8 @@ async function createExchange() {
       body: {
         type: '1-to-1',
         send_email: true,
-        attributes: [...selectedAttributes.value].map(
-          (attribute) => attributeOptions[attribute]!.attributeId
+        attributes: [...selectedAttributes.value].flatMap(
+          (attribute) => attributeOptions[attribute]!.attributes
         ),
         public_initiator_attributes: [publicAttributeOptions[publicAttribute.value]!.attributeId]
       }

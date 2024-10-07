@@ -4,7 +4,7 @@ from email.message import EmailMessage
 import aiosmtplib
 
 from app.config import settings
-from server.app.exchanges.models import Exchange
+from app.exchanges.models import Exchange
 
 logger = logging.getLogger(__name__)
 

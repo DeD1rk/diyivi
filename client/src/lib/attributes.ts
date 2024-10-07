@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/api/types'
+
 export const publicAttributeOptions: {
   [key: string]: { label: string; description: string | null; attributeId: string }
 } = {
@@ -14,25 +16,33 @@ export const publicAttributeOptions: {
 }
 
 export const attributeOptions: {
-  [key: string]: { label: string; attributeId: string }
+  [key: string]: { label: string; attributes: string[] }
 } = {
   name: {
     label: 'Volledige naam',
-    attributeId: 'pbdf.gemeente.personalData.fullname'
+    attributes: ['pbdf.gemeente.personalData.fullname']
   },
   birthdate: {
     label: 'Geboortedatum',
-    attributeId: 'pbdf.gemeente.personalData.dateofbirth'
+    attributes: ['pbdf.gemeente.personalData.dateofbirth']
   },
   mobilenumber: {
     label: 'Mobiel telefoonnumer',
-    attributeId: 'pbdf.sidn-pbdf.mobilenumber.mobilenumber'
+    attributes: ['pbdf.sidn-pbdf.mobilenumber.mobilenumber']
   },
   email: {
     label: 'E-mailadres',
-    attributeId: 'pbdf.sidn-pbdf.email.email'
+    attributes: ['pbdf.sidn-pbdf.email.email']
+  },
+  address: {
+    label: 'Woonadres',
+    attributes: [
+      'pbdf.gemeente.address.street',
+      'pbdf.gemeente.address.houseNumber',
+      'pbdf.gemeente.address.zipcode',
+      'pbdf.gemeente.address.city'
+    ]
   }
-  // TODO: adres
 }
 
 export const publicAttributeDisplayOptions: {
@@ -54,22 +64,46 @@ export const publicAttributeDisplayOptions: {
   }
 }
 
+export type DisclosedMap = { [key: string]: TranslatedString }
 export const attributeDisplayOptions: {
-  [key: string]: {
-    label: string
+  label: string
+  requiredAttributes: string[]
+  display: (disclosed: DisclosedMap) => string
+}[] = [
+  {
+    label: 'Volledige naam',
+    requiredAttributes: ['pbdf.gemeente.personalData.fullname'],
+    display: (values: DisclosedMap) => values['pbdf.gemeente.personalData.fullname']!.nl
+  },
+  {
+    label: 'E-mailadres',
+    requiredAttributes: ['pbdf.sidn-pbdf.email.email'],
+    display: (values: DisclosedMap) => values['pbdf.sidn-pbdf.email.email']!.nl
+  },
+  {
+    label: 'Mobiel telefoonnummer',
+    requiredAttributes: ['pbdf.sidn-pbdf.mobilenumber.mobilenumber'],
+    display: (values: DisclosedMap) => values['pbdf.sidn-pbdf.mobilenumber.mobilenumber']!.nl
+  },
+  {
+    label: 'Geboortedatum',
+    requiredAttributes: ['pbdf.gemeente.personalData.dateofbirth'],
+    display: (values: DisclosedMap) => values['pbdf.gemeente.personalData.dateofbirth']!.nl
+  },
+  {
+    label: 'Woonadres',
+    requiredAttributes: [
+      'pbdf.gemeente.address.street',
+      'pbdf.gemeente.address.houseNumber',
+      'pbdf.gemeente.address.zipcode',
+      'pbdf.gemeente.address.city'
+    ],
+    display: (values: DisclosedMap) => {
+      const address = values['pbdf.gemeente.address.street']!.nl
+      const houseNumber = values['pbdf.gemeente.address.houseNumber']!.nl
+      const zipcode = values['pbdf.gemeente.address.zipcode']!.nl
+      const city = values['pbdf.gemeente.address.city']!.nl
+      return `${address} ${houseNumber}, ${zipcode} ${city}`
+    }
   }
-} = {
-  'pbdf.gemeente.personalData.fullname': {
-    label: 'Volledige naam'
-  },
-  'pbdf.gemeente.personalData.dateofbirth': {
-    label: 'Geboortedatum'
-  },
-  'pbdf.sidn-pbdf.mobilenumber.mobilenumber': {
-    label: 'Mobiel telefoonnummer'
-  },
-  'pbdf.sidn-pbdf.email.email': {
-    label: 'E-mailadres'
-  }
-  // TODO: adres
-}
+]

@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.config import settings
 from app.exchanges.dependencies import Storage, get_exchange, get_storage
+from app.exchanges.email import send_initiator_result_email
 from app.exchanges.models import (
     CreateExchangeRequest,
     DisclosedValue,
@@ -26,7 +27,6 @@ from app.yivi.models import (
     DisclosureSessionResultJWT,
     ExtendedDisclosureRequest,
 )
-from server.app.exchanges.email import send_initiator_result_email
 
 router = APIRouter()
 
