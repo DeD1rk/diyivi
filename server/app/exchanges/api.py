@@ -218,7 +218,7 @@ async def respond(
     await storage.push_reply(exchange, reply)
 
     if exchange.send_email and exchange.initiator_email_value:
-        background_tasks.add_task(send_initiator_result_email, exchange)
+        background_tasks.add_task(send_initiator_result_email, exchange, reply)
 
     return RecipientResponseResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore
