@@ -2,7 +2,7 @@ import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 import jwt
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidationError, model_validator
@@ -86,17 +86,7 @@ class AttributeValue(BaseModel):
         return self
 
 
-class DisclosureRequest(BaseModel):
-    """Request for disclosure of attributes.
-
-    See: https://irma.app/docs/session-requests/#disclosure-requests
-    """
-
-    context: Literal["https://irma.app/ld/request/disclosure/v2"] = Field(
-        alias="@context",
-        default="https://irma.app/ld/request/disclosure/v2",
-    )
-
+class _BaseRequest(BaseModel):
     disclose: list[list[list[Attribute]]] = Field(
         description="ConDisCon of attributes to disclose."
     )
@@ -114,12 +104,33 @@ class DisclosureRequest(BaseModel):
     )
 
 
-class ExtendedDisclosureRequest(BaseModel):
-    """Request for disclosure of attributes with additional options.
+class DisclosureRequest(_BaseRequest):
+    """Request for disclosure of attributes.
 
-    See: https://irma.app/docs/session-requests/#extra-parameters
+    See: https://irma.app/docs/session-requests/#disclosure-requests
     """
 
+    context: Literal["https://irma.app/ld/request/disclosure/v2"] = Field(
+        alias="@context",
+        default="https://irma.app/ld/request/disclosure/v2",
+    )
+
+
+class SignatureRequest(_BaseRequest):
+    """Request for an attribute-based signature.
+
+    See: https://irma.app/docs/session-requests/#attribute-based-signature-requests
+    """
+
+    context: Literal["https://irma.app/ld/request/signature/v2"] = Field(
+        alias="@context",
+        default="https://irma.app/ld/request/signature/v2",
+    )
+
+    message: str = Field(min_length=1)
+
+
+class _BaseExtendedRequest(BaseModel):
     validity: int | None = Field(
         description="Validity of session result JWT in seconds.",
         default=None,
@@ -139,14 +150,28 @@ class ExtendedDisclosureRequest(BaseModel):
         default=None,
     )
 
+
+class ExtendedDisclosureRequest(_BaseExtendedRequest):
+    """Request for disclosure of attributes with additional options.
+
+    See: https://irma.app/docs/session-requests/#extra-parameters
+    """
+
     request: DisclosureRequest
 
 
-class DisclosureRequestJWT(BaseModel):
-    sub: Literal["verification_request"] = "verification_request"
+class ExtendedSignatureRequest(_BaseExtendedRequest):
+    """Request for disclosure of attributes with additional options.
+
+    See: https://irma.app/docs/session-requests/#extra-parameters
+    """
+
+    request: SignatureRequest
+
+
+class _BaseSessionRequestJWT(BaseModel):
     iss: str = settings.irma.session_request_issuer_id
     iat: Timestamp = Field(default_factory=lambda: datetime.now(UTC))
-    sprequest: ExtendedDisclosureRequest
 
     def signed_jwt(self) -> str:
         return jwt.encode(
@@ -154,6 +179,16 @@ class DisclosureRequestJWT(BaseModel):
             settings.irma.session_request_secret_key.get_secret_value(),
             algorithm="HS256",
         )
+
+
+class DisclosureRequestJWT(_BaseSessionRequestJWT):
+    sub: Literal["verification_request"] = "verification_request"
+    sprequest: ExtendedDisclosureRequest
+
+
+class SignatureRequestJWT(_BaseSessionRequestJWT):
+    sub: Literal["signature_request"] = "signature_request"
+    absrequest: ExtendedDisclosureRequest
 
 
 class DisclosedAttribute(BaseModel):
@@ -173,7 +208,9 @@ class DisclosedAttribute(BaseModel):
         return self.id == value
 
 
-class BaseSessionResultJWT(BaseModel):
+class _BaseSessionResultJWT(BaseModel):
+    """Base class for session result JWTs."""
+
     iss: str = Field(
         description="Name of the current irma server as defined in its configuration.",
     )
@@ -183,16 +220,9 @@ class BaseSessionResultJWT(BaseModel):
     exp: Timestamp = Field(
         description="Unix timestamp indicating until when this JWT is valid",
     )
-    sub: Literal["disclosing_result", "signing_result", "issuing_result"]
 
-    type: Literal["disclosing", "signing", "issuing"]
     status: SessionStatus
     token: str
-
-
-class DisclosureSessionResultJWT(BaseSessionResultJWT):
-    sub: Literal["disclosing_result"] = "disclosing_result"
-    type: Literal["disclosing"] = "disclosing"
 
     proof_status: ProofStatus = Field(
         alias="proofStatus",
@@ -211,7 +241,7 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
     def satisfies_condiscon(
         self, condiscon: Sequence[Sequence[Sequence[Attribute | AttributeValue]]]
     ) -> bool:
-        """Return whether this disclosure result satisfies the given ConDisCon.
+        """Return whether this session result satisfies the given ConDisCon.
 
         This result needs to be successful and the disclosed attributes need to match.
         That is, a disclosure should have the same number of elements as the number of
@@ -233,10 +263,10 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
 
     @classmethod
     def parse_jwt(cls, raw_result: str) -> Self:
-        """Parse and verify a disclosure session result JWT.
+        """Parse and verify a session result JWT.
 
         :raises jwt.InvalidTokenError: If the input is not a valid JWT.
-        :raises pydantic.ValidationError: If the input is not a valid disclosure session result.
+        :raises pydantic.ValidationError: If the input is not a valid session result.
         """
         try:
             result_dict = jwt.decode(
@@ -247,13 +277,45 @@ class DisclosureSessionResultJWT(BaseSessionResultJWT):
                 # This can be necessary when the irma server is running on a different machine.
                 leeway=5,
             )
+            # The actual result type depends on the subclass this is called on.
             return cls.model_validate(result_dict)
         except jwt.InvalidTokenError:
             logger.debug("Invalid JWT", exc_info=True)
             raise
         except ValidationError:
-            logger.debug("Invalid disclosure result in JWT", exc_info=True)
+            logger.debug("Invalid session result in JWT", exc_info=True)
             raise
+
+
+class DisclosureSessionResultJWT(_BaseSessionResultJWT):
+    """The result of a disclosure session, signed by the `irma server`."""
+
+    sub: Literal["disclosing_result"] = "disclosing_result"
+    type: Literal["disclosing"] = "disclosing"
+
+
+class SignedMessage(BaseModel):
+    """An attribute-based signature including the message.
+
+    This is very loosely typed, as actual verification can be done by an `irma server`.
+    """
+
+    ldcontext: Literal["https://irma.app/ld/request/disclosure/v2"] = Field(alias="@context")
+    signature: list[dict[str, str | dict[str, str]]]
+    indices: list[list[dict[str, int]]]
+    nonce: str
+    context: str
+    message: str
+    timestamp: dict[str, Any]
+
+
+class SignatureSessionResultJWT(_BaseSessionResultJWT):
+    """The result of a signature session, signed by the `irma server`."""
+
+    sub: Literal["signing_result"] = "signing_result"
+    type: Literal["signing"] = "signing"
+
+    signature: SignedMessage
 
 
 def satisfies_disjunction(
