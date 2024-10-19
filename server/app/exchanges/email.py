@@ -1,26 +1,11 @@
 import logging
 from email.message import EmailMessage
 
-import aiosmtplib
-
 from app.config import settings
 from app.exchanges.models import Exchange, ExchangeReply
+from app.utils import send_email
 
 logger = logging.getLogger(__name__)
-
-
-async def send_email(message: EmailMessage):
-    if settings.smtp is None:
-        logger.warning("No SMTP server is configured, but an email would have been sent.")
-        return
-
-    await aiosmtplib.send(
-        message,
-        hostname=settings.smtp.hostname,
-        username=settings.smtp.username,
-        password=settings.smtp.password,
-        start_tls=True,
-    )
 
 
 async def send_initiator_result_email(exchange: Exchange, reply: ExchangeReply):

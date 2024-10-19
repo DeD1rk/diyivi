@@ -1,7 +1,28 @@
+import logging
 from collections import defaultdict
-from typing import Iterable
+from collections.abc import Iterable
+from email.message import EmailMessage
 
+import aiosmtplib
+
+from app.config import settings
 from app.yivi.models import Attribute
+
+logger = logging.getLogger(__name__)
+
+
+async def send_email(message: EmailMessage):
+    if settings.smtp is None:
+        logger.warning("No SMTP server is configured, but an email would have been sent.")
+        return
+
+    await aiosmtplib.send(
+        message,
+        hostname=settings.smtp.hostname,
+        username=settings.smtp.username,
+        password=settings.smtp.password,
+        start_tls=True,
+    )
 
 
 def create_condiscon(

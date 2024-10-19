@@ -19,8 +19,8 @@ from app.exchanges.models import (
     RecipientExchangeResponse,
     RecipientResponseResponse,
 )
-from app.exchanges.utils import create_condiscon
 from app.models import HTTPExceptionResponse
+from app.utils import create_condiscon
 from app.yivi.models import (
     DisclosureRequest,
     DisclosureRequestJWT,

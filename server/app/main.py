@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.exchanges.api import router as exchanges_router
+from app.exchanges.api import router as signatures_router
 
 app = FastAPI(
     title="DIYivi",
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(exchanges_router, prefix="/api/exchanges")
+app.include_router(signatures_router, prefix="/api/signatures")
 
 
 def output_schema():
