@@ -7,7 +7,7 @@ client/dist/
 client/.env
 
 !pyproject.toml
-!poetry.lock
+!uv.lock
 !server/app/
 
 !infra/nginx/

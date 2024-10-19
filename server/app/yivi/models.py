@@ -1,7 +1,8 @@
 import logging
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Literal, Self, Sequence
+from typing import Annotated, Literal, Self
 
 import jwt
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidationError, model_validator
