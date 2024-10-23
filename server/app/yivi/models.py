@@ -188,7 +188,7 @@ class DisclosureRequestJWT(_BaseSessionRequestJWT):
 
 class SignatureRequestJWT(_BaseSessionRequestJWT):
     sub: Literal["signature_request"] = "signature_request"
-    absrequest: ExtendedDisclosureRequest
+    absrequest: ExtendedSignatureRequest
 
 
 class DisclosedAttribute(BaseModel):

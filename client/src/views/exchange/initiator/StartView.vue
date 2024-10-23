@@ -2,12 +2,12 @@
 import { onMounted, ref } from 'vue'
 import type { InitiatorExchangeResponse } from '@/api/types'
 import { useToast } from '@/components/ui/toast'
+import Title from '@/components/Title.vue'
+import Header from '@/components/Title.vue'
+import client from '@/api'
 
 // @ts-ignore
 import yivi from '@privacybydesign/yivi-frontend'
-import client from '@/api'
-import Title from '@/components/Title.vue'
-import Header from '@/components/Title.vue'
 
 const props = defineProps<{
   exchange: InitiatorExchangeResponse

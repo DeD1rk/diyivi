@@ -7,11 +7,22 @@ services:
       IRMASERVER_NO_AUTH: 0
       IRMASERVER_NO_EMAIL: 1
       IRMASERVER_NO_TLS: 1
-      IRMASERVER_AUGMENT_CLIENT_RETURN_URL: 1
+      IRMASERVER_PRODUCTION: 1
       IRMASERVER_URL: https://diyivi.ddoesburg.nl/yivi/
       # Configure the key that the API can sign session request JWTs with.
       # WARNING: this is a placeholder key. Generate a secret one for production use.
-      IRMASERVER_REQUESTORS: '{"diyivi": {"auth_method": "hmac", "key": "dW5zYWZlX3NlY3JldF9rZXk="}}'
+      IRMASERVER_REQUESTORS: '{
+        "diyivi": {
+          "auth_method": "hmac",
+          "key": "dW5zYWZlX3NlY3JldF9rZXk=",
+          "disclose_perms": ["*"]
+        },
+        "client": {
+          "auth_method": "hmac",
+          "key": "c2lnbmF0dXJlcy1jYW4tYmUtY3JlYXRlZC1ieS1hbnlvbmU=",
+          "sign_perms": ["*"]
+        }
+      }'
       # Configure the key that the irma server can sign session result JWTs with.
       IRMASERVER_JWT_PRIVKEY_file: /run/secrets/irmaserver-jwt-privkey
     secrets:
