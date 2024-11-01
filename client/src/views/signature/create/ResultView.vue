@@ -19,7 +19,7 @@ const signatureLines = computed(() => {
   }
   return lines
 })
-const verifyUrl = window.origin + '/verify/'
+const verifyUrl = window.origin + '/signature/verify/'
 </script>
 
 <template>

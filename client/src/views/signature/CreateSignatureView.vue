@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import CreateView from './CreateView.vue'
-import SignView from './SignView.vue'
+import CreateView from './create/CreateView.vue'
+import SignView from './create/SignView.vue'
 import Title from '@/components/Title.vue'
-import ResultView from './ResultView.vue'
+import ResultView from './create/ResultView.vue'
 import type { DisclosedValue } from '@/api/types'
 
 const message = ref<string | null>(null)

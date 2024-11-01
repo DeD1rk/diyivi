@@ -35,7 +35,9 @@ import Header from '@/components/Header.vue'
       <div class="flex-1 bg-yivi-lightblue p-4 pt-0">
         <Header>Leg afspraken vast</Header>
         <p>...</p>
-        <Button class="mt-4" to="/signature/create/"> Leg afspraak vast </Button>
+        <Button as-child class="mt-4">
+          <RouterLink to="/signature/create/">Leg afspraak vast</RouterLink>
+        </Button>
       </div>
     </div>
   </div>
