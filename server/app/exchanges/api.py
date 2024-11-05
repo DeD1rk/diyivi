@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Qu
 from pydantic import ValidationError
 
 from app.config import settings
-from app.exchanges.dependencies import Storage, get_exchange, get_storage
+from app.exchanges.dependencies import ExchangesStorage, get_exchange, get_exchanges_storage
 from app.exchanges.email import send_initiator_result_email
 from app.exchanges.models import (
     CreateExchangeRequest,
@@ -34,7 +34,7 @@ router = APIRouter()
 @router.post("/create/")
 async def create(
     exchange_request: CreateExchangeRequest,
-    storage: Annotated[Storage, Depends(get_storage)],
+    storage: Annotated[ExchangesStorage, Depends(get_exchanges_storage)],
 ) -> InitiatorExchangeResponse:
     """Create a new exchange.
 
@@ -62,7 +62,7 @@ async def create(
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
-            validity=settings.disclosure_request_validity,
+            validity=settings.session_request_validity,
             request=DisclosureRequest(disclose=condiscon),
         ),
     ).signed_jwt()
@@ -86,7 +86,7 @@ async def start(
     exchange: Annotated[Exchange, Depends(get_exchange)],
     initiator_secret: Annotated[str, Body(pattern="^[0-9a-f]{32}$", embed=True)],
     disclosure_result: Annotated[str, Body(title="Disclosure session result JWT", embed=True)],
-    storage: Annotated[Storage, Depends(get_storage)],
+    storage: Annotated[ExchangesStorage, Depends(get_exchanges_storage)],
 ) -> None:
     """Start an exchange by submitting the session result JWT of the initiator's disclosure."""
     if exchange.initiator_secret != initiator_secret:
@@ -143,7 +143,7 @@ async def start(
 )
 async def get_exchange_info(
     exchange: Annotated[Exchange, Depends(get_exchange)],
-    storage: Annotated[Storage, Depends(get_storage)],
+    storage: Annotated[ExchangesStorage, Depends(get_exchanges_storage)],
 ) -> RecipientExchangeResponse:
     """Get information about an exchange, allowing a recipient to decide to respond."""
     if not exchange.started:
@@ -156,7 +156,7 @@ async def get_exchange_info(
 
     disclosure_request = DisclosureRequestJWT(
         sprequest=ExtendedDisclosureRequest(
-            validity=settings.disclosure_request_validity,
+            validity=settings.session_request_validity,
             request=DisclosureRequest(
                 disclose=create_condiscon(exchange.attributes),
             ),
@@ -180,7 +180,7 @@ async def get_exchange_info(
 async def respond(
     exchange: Annotated[Exchange, Depends(get_exchange)],
     disclosure_result: Annotated[str, Body(title="Disclosure session result JWT", embed=True)],
-    storage: Annotated[Storage, Depends(get_storage)],
+    storage: Annotated[ExchangesStorage, Depends(get_exchanges_storage)],
     background_tasks: BackgroundTasks,
 ) -> RecipientResponseResponse:
     """Submit the session result JWT of a recipient's disclosure."""
@@ -237,7 +237,7 @@ async def respond(
 async def get_exchange_result(
     exchange: Annotated[Exchange, Depends(get_exchange)],
     secret: Annotated[str, Query(pattern="^[0-9a-f]{32}$", embed=True)],
-    storage: Annotated[Storage, Depends(get_storage)],
+    storage: Annotated[ExchangesStorage, Depends(get_exchanges_storage)],
 ) -> ExchangeResultResponse:
     """Get the result of an exchange.
 

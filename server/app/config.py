@@ -3,11 +3,6 @@ from pydantic_settings import BaseSettings
 
 
 class IRMAServerSettings(BaseModel):
-    server_url: HttpUrl = Field(
-        description="URL of the IRMA server to use.",
-        default="https://irmaserver.diyivi.ddoesburg.nl",
-    )
-
     server_public_key: bytes = Field(
         default=b"""-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjzh9XSDMKri2hJ5jpgSR
@@ -76,9 +71,9 @@ class Settings(BaseSettings):
         """,
     )
 
-    disclosure_request_validity: int | None = Field(
+    session_request_validity: int | None = Field(
         default=None,
-        description="Time in seconds for which a Yivi disclosure request JWT is valid.",
+        description="Time in seconds for which a Yivi session request JWT is valid.",
     )
 
     email_attribute: str = Field(
