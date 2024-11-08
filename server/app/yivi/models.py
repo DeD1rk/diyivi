@@ -116,7 +116,7 @@ class DisclosureRequest(_BaseRequest):
     )
 
 
-class SignatureRequest(_BaseRequest):
+class IRMASignatureRequest(_BaseRequest):
     """Request for an attribute-based signature.
 
     See: https://irma.app/docs/session-requests/#attribute-based-signature-requests
@@ -160,13 +160,13 @@ class ExtendedDisclosureRequest(_BaseExtendedRequest):
     request: DisclosureRequest
 
 
-class ExtendedSignatureRequest(_BaseExtendedRequest):
+class ExtendedIRMASignatureRequest(_BaseExtendedRequest):
     """Request for disclosure of attributes with additional options.
 
     See: https://irma.app/docs/session-requests/#extra-parameters
     """
 
-    request: SignatureRequest
+    request: IRMASignatureRequest
 
 
 class _BaseSessionRequestJWT(BaseModel):
@@ -186,9 +186,9 @@ class DisclosureRequestJWT(_BaseSessionRequestJWT):
     sprequest: ExtendedDisclosureRequest
 
 
-class SignatureRequestJWT(_BaseSessionRequestJWT):
+class IRMASignatureRequestJWT(_BaseSessionRequestJWT):
     sub: Literal["signature_request"] = "signature_request"
-    absrequest: ExtendedSignatureRequest
+    absrequest: ExtendedIRMASignatureRequest
 
 
 class DisclosedAttribute(BaseModel):

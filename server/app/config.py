@@ -58,7 +58,6 @@ class Settings(BaseSettings):
         description="""Time in seconds to store an exchange before it starts.
 
         If an exchange is not started within this time, it will be deleted.
-        This currently does not apply when no Redis storage is configured.
         """,
     )
 
@@ -67,7 +66,22 @@ class Settings(BaseSettings):
         description="""Time in seconds to store an exchange that has started.
 
         After this time, an exchange and its replies will be deleted.
-        This currently does not apply when no Redis storage is configured.
+        """,
+    )
+
+    signature_request_ttl_before_start: int = Field(
+        default=600,
+        description="""Time in seconds to store a signature request before it starts.
+
+        If the initiator's email is not disclosed within this time, it will be deleted.
+        """,
+    )
+
+    signature_request_ttl: int = Field(
+        default=3600 * 48,
+        description="""Time in seconds to store an exchange that has started.
+
+        After this time, a signature request will be deleted.
         """,
     )
 
