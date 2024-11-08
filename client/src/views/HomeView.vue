@@ -39,12 +39,14 @@ import Header from '@/components/Header.vue'
           knoppen stel je een afspraak op, en onderteken je deze zelf, of vraag je iemand anders om
           te tekenen.
         </p>
-        <Button as-child class="mt-4">
-          <RouterLink to="/signature/create/">Onderteken zelf</RouterLink>
-        </Button>
-        <Button as-child class="mt-4">
-          <RouterLink to="/signature/request/create/">Vraag iemand anders te tekenen</RouterLink>
-        </Button>
+        <div class="flex flex-wrap gap-2 mt-4">
+          <Button as-child>
+            <RouterLink to="/signature/create/">Onderteken zelf</RouterLink>
+          </Button>
+          <Button as-child>
+            <RouterLink to="/signature/request/create/">Vraag iemand anders te tekenen</RouterLink>
+          </Button>
+        </div>
         <p class="text-sm mt-4">
           Een al getekende tekst kun je hier ook controleren. Je weet dan zeker wie wat getekend
           heeft.

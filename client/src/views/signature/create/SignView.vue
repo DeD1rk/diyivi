@@ -72,7 +72,6 @@ onMounted(async () => {
       console.error('Session result: ', result)
       return
     }
-    result.signature.message = '<moved>'
     emit(
       'signed',
       result.signature.message,

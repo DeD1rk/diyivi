@@ -9,46 +9,26 @@ const props = defineProps<{
   signature: string
   disclosed: DisclosedValue[]
 }>()
-
-const signatureLines = computed(() => {
-  const base64 = window.btoa(props.signature)
-  const numLines = Math.ceil(base64.length / 64)
-  const lines = new Array(numLines)
-  for (let i = 0; i < numLines; ++i) {
-    lines[i] = base64.slice(64 * i, 64 * i + 64)
-  }
-  return lines
-})
 const verifyUrl = window.origin + '/signature/verify/'
+
+const signatureText = computed(() => {
+  return verifyUrl + '#' + window.btoa(props.signature)
+})
 </script>
 
 <template>
   <Header>Gelukt!</Header>
   <p>Je hebt het bericht ondertekend met de volgende gegevens van jou:</p>
   <AttributeList class="mt-4" :attributes="disclosed" />
-  <p class="my-4">Hier is het ondertekende bericht:</p>
-  <div
-    class="font-mono select-all break-normal bg-yivi-lightblue rounded-md p-4 text-sm overflow-x-scroll"
-  >
-    Onderstaande bericht is ondertekend met Yivi. Yivi is een identiteitsapp waarmee je makkelijk en
-    veilig inlogt, gegevens deelt en bewijst wie je bent.
-    <br />
-    Controleer de handtekening op {{ verifyUrl }}. Alleen dan weet je zeker of het bericht echt
-    ondertekend is. Je ziet daar ook door wie en wanneer de handtekening gemaakt is.
-    <br />
-    <br />
-    ----- MESSAGE -----
-    <br />
-    <br />
-    <div class="whitespace-break-spaces">{{ message }}</div>
-    <br />
-    <br />
-    ----- BEGIN YIVI SIGNATURE -----
-    <br />
-    <div class="text-xs">
-      <template v-for="(line, index) in signatureLines" :key="index"><br />{{ line }}</template>
-    </div>
-    <br />
-    ----- END YIVI SIGNATURE -----
+  <p class="my-4">
+    Hieronder vind je het ondertekende bericht. Om het te lezen en te zien door wie de afspraak
+    ondertekend is, kan iemand hem invullen op
+    <a :href="verifyUrl" class="font-mono" target="_blank">{{ verifyUrl }}</a
+    >. Het ondertekende bericht zelf is ook een link naar deze pagina, dus men kan deze link
+    simpelweg openen. Geef deze instructie mee aan de ontvanger van het ondertekende bericht, zodat
+    die weet hoe hij het bericht kan lezen en de handtekening kan controleren.
+  </p>
+  <div class="font-mono select-all break-all bg-yivi-lightblue rounded-md p-4 text-xs">
+    {{ signatureText }}
   </div>
 </template>

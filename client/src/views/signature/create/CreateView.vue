@@ -35,7 +35,12 @@ function setSelectedAttribute(attribute: string, checked: boolean) {
     It's a bit harder to implement while keeping the accessibility and styling consistent.
     The Yivi app should already protect the user from this, as well as from an evil client.
   -->
-  <Textarea v-model="message" placeholder="Typ hier je bericht of afspraak." rows="6" />
+  <Textarea
+    v-model="message"
+    placeholder="Typ hier je bericht of afspraak."
+    rows="6"
+    maxlength="64000"
+  />
 
   <Header>Stap 2: Met welke gegevens van jouzelf wil je tekenen?</Header>
   <div class="grid gap-2 mt-4 mb-2">
