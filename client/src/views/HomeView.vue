@@ -17,7 +17,7 @@ import Header from '@/components/Header.vue'
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
       <!-- Card 1 -->
       <div class="flex-1 bg-yivi-lightblue p-4 pt-0">
-        <Header>Leer elkaar kennen</Header>
+        <Header>Wie is wie?</Header>
         <p class="text-sm">
           Praat je met iemand via e-mail of chat en wil je van beide kanten meer zekerheid? Maak
           hieronder een verzoek om elkaar beter te leren kennen. Als initiatiefnemer maak jij jezelf
@@ -33,10 +33,24 @@ import Header from '@/components/Header.vue'
       </div>
 
       <div class="flex-1 bg-yivi-lightblue p-4 pt-0">
-        <Header>Leg afspraken vast</Header>
-        <p>...</p>
+        <Header>Wie zegt wat?</Header>
+        <p class="text-sm">
+          Met een digitale handtekening kun je onderlinge afspraken vastleggen. Met onderstaande
+          knoppen stel je een afspraak op, en onderteken je deze zelf, of vraag je iemand anders om
+          te tekenen.
+        </p>
         <Button as-child class="mt-4">
-          <RouterLink to="/signature/create/">Leg afspraak vast</RouterLink>
+          <RouterLink to="/signature/create/">Onderteken zelf</RouterLink>
+        </Button>
+        <Button as-child class="mt-4">
+          <RouterLink to="/signature/request/create/">Vraag iemand anders te tekenen</RouterLink>
+        </Button>
+        <p class="text-sm mt-4">
+          Een al getekende tekst kun je hier ook controleren. Je weet dan zeker wie wat getekend
+          heeft.
+        </p>
+        <Button as-child class="mt-4">
+          <RouterLink to="/signature/verify/">Handtekening controleren</RouterLink>
         </Button>
       </div>
     </div>

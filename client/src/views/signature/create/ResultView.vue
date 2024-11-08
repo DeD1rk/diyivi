@@ -24,9 +24,9 @@ const verifyUrl = window.origin + '/signature/verify/'
 
 <template>
   <Header>Gelukt!</Header>
-  <p>Je hebt het bericht ondertekend met de volgende gegevens:</p>
+  <p>Je hebt het bericht ondertekend met de volgende gegevens van jou:</p>
   <AttributeList class="mt-4" :attributes="disclosed" />
-  <p>Hier is het ondertekende bericht:</p>
+  <p class="my-4">Hier is het ondertekende bericht:</p>
   <div
     class="font-mono select-all break-normal bg-yivi-lightblue rounded-md p-4 text-sm overflow-x-scroll"
   >

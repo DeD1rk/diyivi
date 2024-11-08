@@ -91,7 +91,7 @@ onMounted(async () => {
 
 <template>
   <Header>Stap 3: Onderteken</Header>
-  <p>Onderteken het bericht nu met Yivi.</p>
+  <p>Bijna klaar! Ga nu verder met Yivi.</p>
   <div class="flex justify-center mt-16">
     <div id="yivi-web-form"></div>
   </div>

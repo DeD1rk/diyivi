@@ -14,10 +14,10 @@ const disclosed = ref<DisclosedValue[] | null>(null)
 
 <template>
   <div class="p-8">
-    <Title>Afspraken vastleggen</Title>
+    <Title>Afspraken vastleggen: onderteken zelf</Title>
     <p>
-      Onderteken een afspraak. Stel de afspraak op, kies de gegevens waarmee je wilt onderteken, en
-      zet je handtekening met je Yivi app.
+      In drie stappen stel je de afspraak op, kies de gegevens waarmee je ondertekent, en zet je een
+      digitale handtekening met je Yivi app.
     </p>
     <CreateView
       v-if="!message"

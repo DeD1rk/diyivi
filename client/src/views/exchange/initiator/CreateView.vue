@@ -56,7 +56,7 @@ async function createExchange() {
       title: 'Oeps! Er ging iets mis',
       description: 'Er is iets misgegaan bij het aanmaken van de uitwisseling.'
     })
-    console.error("Couldn't do what you asked 😢", error)
+    console.error(error)
   } finally {
     isCreating.value = false
   }

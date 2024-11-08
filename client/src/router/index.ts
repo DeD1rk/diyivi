@@ -5,6 +5,7 @@ import RespondView from '../views//exchange/RespondView.vue'
 import AboutView from '../views/AboutView.vue'
 import CreateSignatureView from '@/views/signature/CreateSignatureView.vue'
 import VerifySignatureView from '@/views/signature/VerifySignatureView.vue'
+import RequestSignatureView from '@/views/signature/RequestSignatureView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,6 +31,10 @@ const router = createRouter({
     {
       path: '/signature/verify/',
       component: VerifySignatureView
+    },
+    {
+      path: '/signature/request/create/',
+      component: RequestSignatureView
     },
     {
       path: '/about',

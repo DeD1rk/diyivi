@@ -37,7 +37,7 @@ function setSelectedAttribute(attribute: string, checked: boolean) {
   -->
   <Textarea v-model="message" placeholder="Typ hier je bericht of afspraak." rows="6" />
 
-  <Header>Stap 2: Met welke gegevens wil je tekenen?</Header>
+  <Header>Stap 2: Met welke gegevens van jouzelf wil je tekenen?</Header>
   <div class="grid gap-2 mt-4 mb-2">
     <div
       v-for="({ label }, attribute) of attributeOptions"
@@ -55,7 +55,10 @@ function setSelectedAttribute(attribute: string, checked: boolean) {
   </div>
 
   <Header>Stap 3: Onderteken</Header>
-  <p class="text-sm">Klopt alles? Dan kun je je bericht nu ondertekenen met Yivi.</p>
+  <p class="text-sm">
+    Klopt alles? Dan kun je je bericht nu ondertekenen met Yivi. Je ziet het bericht in de Yivi app
+    nogmaals.
+  </p>
   <Button
     class="mt-4"
     :disabled="noAttributesSelected || emptyMessage"

@@ -18,8 +18,6 @@ const emit = defineEmits<{
 
 const { toast } = useToast()
 
-const exchangeStarted = ref(false)
-
 onMounted(async () => {
   const disclosure = yivi.newWeb({
     debugging: true,
@@ -61,7 +59,6 @@ onMounted(async () => {
       })
       console.error(error)
     } else {
-      exchangeStarted.value = true
       emit('started')
       console.log(
         'Send this to the other party:',
