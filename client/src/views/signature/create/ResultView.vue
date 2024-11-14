@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import Header from '@/components/Header.vue'
 import type { DisclosedValue } from '@/api/types'
 import AttributeList from '@/components/AttributeList.vue'
+import RawLinkDisplay from '@/components/RawLinkDisplay.vue'
 
 const props = defineProps<{
   message: string
@@ -28,7 +29,9 @@ const signatureText = computed(() => {
     simpelweg openen. Geef deze instructie mee aan de ontvanger van het ondertekende bericht, zodat
     die weet hoe hij het bericht kan lezen en de handtekening kan controleren.
   </p>
-  <div class="font-mono select-all break-all bg-yivi-lightblue rounded-md p-4 text-xs">
-    {{ signatureText }}
-  </div>
+  <RawLinkDisplay
+    :link="signatureText"
+    copyMessage="Je ondertekende bericht is gekopieerd."
+    class="text-xs"
+  />
 </template>

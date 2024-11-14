@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/toast'
 import { Loader2 } from 'lucide-vue-next'
 import type { DisclosedValue } from '@/api/types'
 import AttributeList from '@/components/AttributeList.vue'
+import PlainMessageDisplay from '@/components/PlainMessageDisplay.vue'
 
 const rawSignature = ref<string>('')
 const isVerifying = ref<boolean>(false)
@@ -144,9 +145,9 @@ async function verify(signature: string) {
     <div v-else>
       <Header>Handtekening klopt!</Header>
       <p>Dit is het bericht dat ondertekend is:</p>
-      <div class="text-sm whitespace-break-spaces bg-yivi-lightblue rounded-md p-4 my-4">
+      <PlainMessageDisplay>
         {{ validSignature.message }}
-      </div>
+      </PlainMessageDisplay>
       <p>
         Het is ondertekend op
         <span class="font-semibold">{{ validSignature.signatureTime }}.</span>

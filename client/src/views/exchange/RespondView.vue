@@ -41,7 +41,7 @@ async function loadExchange() {
   } catch (error) {
     toast({
       title: 'Oeps! Er ging iets mis',
-      description: 'Er is iets misgegaan bij het aanmaken van de uitwisseling.'
+      description: 'Er is iets misgegaan bij het ophalen van de uitwisseling.'
     })
   } finally {
     isLoading.value = false

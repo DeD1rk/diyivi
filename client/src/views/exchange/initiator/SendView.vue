@@ -3,12 +3,13 @@ import client from '@/api'
 import type { InitiatorExchangeResponse, ExchangeReply } from '@/api/types'
 import Title from '@/components/Title.vue'
 import Header from '@/components/Header.vue'
-import { Copy, Mail } from 'lucide-vue-next'
+import { Mail } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast'
 import WhatsApp from '@/components/icons/WhatsApp.vue'
 import { Button } from '@/components/ui/button'
 import { useTimeoutPoll } from '@vueuse/core'
 import { computed } from 'vue'
+import RawLinkDisplay from '@/components/RawLinkDisplay.vue'
 
 const emit = defineEmits<{
   replied: [reply: ExchangeReply]
@@ -37,12 +38,6 @@ const whatsappUrl = computed(() => {
 
   return `whatsapp://send?text=${encodeURIComponent(content + respondUrl.value)}`
 })
-async function copyLink() {
-  await navigator.clipboard.writeText(respondUrl.value)
-  toast({
-    description: 'Je uitnodiging is gekopieerd.'
-  })
-}
 
 async function getResult() {
   try {
@@ -98,12 +93,7 @@ useTimeoutPoll(getResult, 3000, { immediate: true })
       jullie elkaars gegevens te zien. Je ziet de gegevens dan hieronder, en krijgt ze per e-mail
       toegestuurd.
     </p>
-    <div class="font-mono bg-yivi-lightblue py-2 px-4 mt-4 break-all select-all">
-      {{ respondUrl
-      }}<button @click="copyLink">
-        <Copy class="inline ms-2 w-4 h-4 hover:scale-110 transition" />
-      </button>
-    </div>
+    <RawLinkDisplay :link="respondUrl" copyMessage="Je uitnodiging is gekopieerd." class="mt-4" />
     <div id="share-buttons" class="mt-4 flex gap-2">
       <Button as-child v-if="publicAttribute === 'mobilenumber'"
         ><a :href="whatsappUrl"><WhatsApp class="w-4 h-4 me-2" />Verstuur met WhatsApp</a></Button
