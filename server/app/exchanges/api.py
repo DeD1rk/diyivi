@@ -6,9 +6,18 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Qu
 from pydantic import ValidationError
 
 from app.config import settings
-from app.exchanges.dependencies import ExchangesStorage, get_exchange, get_exchanges_storage
-from app.exchanges.email import send_initiator_result_email
-from app.exchanges.models import (
+from app.models import HTTPExceptionResponse
+from app.utils import create_condiscon
+from app.yivi.models import (
+    DisclosureRequest,
+    DisclosureRequestJWT,
+    DisclosureSessionResultJWT,
+    ExtendedDisclosureRequest,
+)
+
+from .dependencies import ExchangesStorage, get_exchange, get_exchanges_storage
+from .email import send_initiator_exchange_result_email
+from .models import (
     CreateExchangeRequest,
     DisclosedValue,
     Exchange,
@@ -18,14 +27,6 @@ from app.exchanges.models import (
     InitiatorExchangeResponse,
     RecipientExchangeResponse,
     RecipientResponseResponse,
-)
-from app.models import HTTPExceptionResponse
-from app.utils import create_condiscon
-from app.yivi.models import (
-    DisclosureRequest,
-    DisclosureRequestJWT,
-    DisclosureSessionResultJWT,
-    ExtendedDisclosureRequest,
 )
 
 router = APIRouter()
@@ -218,7 +219,7 @@ async def respond(
     await storage.push_reply(exchange, reply)
 
     if exchange.send_email and exchange.initiator_email_value:
-        background_tasks.add_task(send_initiator_result_email, exchange, reply)
+        background_tasks.add_task(send_initiator_exchange_result_email, exchange, reply)
 
     return RecipientResponseResponse(
         public_initiator_attribute_values=exchange.public_initiator_attribute_values,  # type: ignore

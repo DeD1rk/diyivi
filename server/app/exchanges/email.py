@@ -3,12 +3,12 @@ from email.message import EmailMessage
 
 from app.config import settings
 from app.exchanges.models import Exchange, ExchangeReply
-from app.utils import send_email
+from app.utils import ATTRIBUTE_DISPLAY_OPTIONS, send_email
 
 logger = logging.getLogger(__name__)
 
 
-async def send_initiator_result_email(exchange: Exchange, reply: ExchangeReply):
+async def send_initiator_exchange_result_email(exchange: Exchange, reply: ExchangeReply):
     message = EmailMessage()
     message["From"] = f"noreply@{settings.email_from_domain}"
     message["To"] = exchange.initiator_email_value
@@ -37,42 +37,3 @@ Dit is een automatisch gegenereerd bericht. U kunt hier niet op reageren.
     )
 
     await send_email(message)
-
-
-ATTRIBUTE_DISPLAY_OPTIONS = [
-    {
-        "label": "Volledige naam",
-        "required_attributes": {"pbdf.gemeente.personalData.fullname"},
-        "display": lambda values: values["pbdf.gemeente.personalData.fullname"].nl,
-    },
-    {
-        "label": "E-mailadres",
-        "required_attributes": {"pbdf.sidn-pbdf.email.email"},
-        "display": lambda values: values["pbdf.sidn-pbdf.email.email"].nl,
-    },
-    {
-        "label": "Mobiel telefoonnummer",
-        "required_attributes": {"pbdf.sidn-pbdf.mobilenumber.mobilenumber"},
-        "display": lambda values: values["pbdf.sidn-pbdf.mobilenumber.mobilenumber"].nl,
-    },
-    {
-        "label": "Geboortedatum",
-        "required_attributes": {"pbdf.gemeente.personalData.dateofbirth"},
-        "display": lambda values: values["pbdf.gemeente.personalData.dateofbirth"].nl,
-    },
-    {
-        "label": "Woonadres",
-        "required_attributes": {
-            "pbdf.gemeente.address.street",
-            "pbdf.gemeente.address.houseNumber",
-            "pbdf.gemeente.address.zipcode",
-            "pbdf.gemeente.address.city",
-        },
-        "display": lambda values: "{address} {house_number}, {zipcode} {city}".format(
-            address=values["pbdf.gemeente.address.street"].nl,
-            house_number=values["pbdf.gemeente.address.houseNumber"].nl,
-            zipcode=values["pbdf.gemeente.address.zipcode"].nl,
-            city=values["pbdf.gemeente.address.city"].nl,
-        ),
-    },
-]

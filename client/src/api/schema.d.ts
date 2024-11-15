@@ -211,6 +211,11 @@ export interface components {
             /** Disclosure session result JWT */
             disclosure_result: string;
         };
+        /** Body_submit_signature_api_signatures_requests__request_id__respond__post */
+        Body_submit_signature_api_signatures_requests__request_id__respond__post: {
+            /** Signature session result JWT */
+            signature_result: string;
+        };
         /**
          * CreateExchangeRequest
          * @description Request body to create an exchange.
@@ -754,18 +759,49 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                request_id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Body_submit_signature_api_signatures_requests__request_id__respond__post"];
+            };
+        };
         responses: {
             /** @description Successful Response */
-            200: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPExceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

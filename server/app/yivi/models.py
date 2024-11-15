@@ -300,7 +300,7 @@ class SignedMessage(BaseModel):
     This is very loosely typed, as actual verification can be done by an `irma server`.
     """
 
-    ldcontext: Literal["https://irma.app/ld/request/disclosure/v2"] = Field(alias="@context")
+    ldcontext: Literal["https://irma.app/ld/signature/v2"] = Field(alias="@context")
     signature: list[dict[str, str | dict[str, str]]]
     indices: list[list[dict[str, int]]]
     nonce: str

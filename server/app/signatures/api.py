@@ -2,22 +2,11 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException
 from pydantic import ValidationError
 
 from app.config import settings
 from app.models import HTTPExceptionResponse
-from app.signatures.dependencies import (
-    SignaturesStorage,
-    get_signature_request,
-    get_signatures_storage,
-)
-from app.signatures.models import (
-    CreateSignatureRequestRequest,
-    RecipientSignatureRequestResponse,
-    SignatureRequest,
-    SignatureRequestResponse,
-)
 from app.utils import create_condiscon
 from app.yivi.models import (
     DisclosureRequest,
@@ -27,6 +16,20 @@ from app.yivi.models import (
     ExtendedIRMASignatureRequest,
     IRMASignatureRequest,
     IRMASignatureRequestJWT,
+    SignatureSessionResultJWT,
+)
+
+from .dependencies import (
+    SignaturesStorage,
+    get_signature_request,
+    get_signatures_storage,
+)
+from .email import send_initiator_signature_result_email
+from .models import (
+    CreateSignatureRequestRequest,
+    RecipientSignatureRequestResponse,
+    SignatureRequest,
+    SignatureRequestResponse,
 )
 
 router = APIRouter()
@@ -133,7 +136,37 @@ def get_signature_request_info(
     )
 
 
-@router.post("/{request_id}/respond/")
-def submit_signature():
+@router.post(
+    "/{request_id}/respond/",
+    responses={
+        400: {"model": HTTPExceptionResponse},
+        404: {"model": HTTPExceptionResponse},
+    },
+    status_code=204,
+)
+def submit_signature(
+    signature_request: Annotated[SignatureRequest, Depends(get_signature_request)],
+    signature_result: Annotated[str, Body(title="Signature session result JWT", embed=True)],
+    storage: Annotated[SignaturesStorage, Depends(get_signatures_storage)],
+    background_tasks: BackgroundTasks,
+) -> None:
     """Submit the signature that someone requested."""
-    raise NotImplementedError
+    if not signature_request.initiator_email_value:
+        raise HTTPException(status_code=404, detail="Signature request not found")
+
+    try:
+        result = SignatureSessionResultJWT.parse_jwt(signature_result)
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=400, detail="Invalid JWT")
+    except ValidationError:
+        raise HTTPException(status_code=400, detail="Invalid session result")
+
+    if not (
+        result.signature.message == signature_request.message
+        and result.satisfies_condiscon(create_condiscon(signature_request.attributes))
+    ):
+        raise HTTPException(status_code=400, detail="Invalid session result")
+
+    background_tasks.add_task(send_initiator_signature_result_email, signature_request, result)
+
+    return

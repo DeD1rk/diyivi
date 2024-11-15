@@ -45,3 +45,42 @@ def create_condiscon(
         condiscon.append([list(credentials[key])])
 
     return condiscon
+
+
+ATTRIBUTE_DISPLAY_OPTIONS = [
+    {
+        "label": "Volledige naam",
+        "required_attributes": {"pbdf.gemeente.personalData.fullname"},
+        "display": lambda values: values["pbdf.gemeente.personalData.fullname"].nl,
+    },
+    {
+        "label": "E-mailadres",
+        "required_attributes": {"pbdf.sidn-pbdf.email.email"},
+        "display": lambda values: values["pbdf.sidn-pbdf.email.email"].nl,
+    },
+    {
+        "label": "Mobiel telefoonnummer",
+        "required_attributes": {"pbdf.sidn-pbdf.mobilenumber.mobilenumber"},
+        "display": lambda values: values["pbdf.sidn-pbdf.mobilenumber.mobilenumber"].nl,
+    },
+    {
+        "label": "Geboortedatum",
+        "required_attributes": {"pbdf.gemeente.personalData.dateofbirth"},
+        "display": lambda values: values["pbdf.gemeente.personalData.dateofbirth"].nl,
+    },
+    {
+        "label": "Woonadres",
+        "required_attributes": {
+            "pbdf.gemeente.address.street",
+            "pbdf.gemeente.address.houseNumber",
+            "pbdf.gemeente.address.zipcode",
+            "pbdf.gemeente.address.city",
+        },
+        "display": lambda values: "{address} {house_number}, {zipcode} {city}".format(
+            address=values["pbdf.gemeente.address.street"].nl,
+            house_number=values["pbdf.gemeente.address.houseNumber"].nl,
+            zipcode=values["pbdf.gemeente.address.zipcode"].nl,
+            city=values["pbdf.gemeente.address.city"].nl,
+        ),
+    },
+]
