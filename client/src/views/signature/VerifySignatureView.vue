@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { Loader2 } from 'lucide-vue-next'
 import type { DisclosedValue } from '@/api/types'
-import AttributeList from '@/components/AttributeList.vue'
+import DisclosedAttributeList from '@/components/DisclosedAttributeList.vue'
 import PlainMessageDisplay from '@/components/PlainMessageDisplay.vue'
 
 const rawSignature = ref<string>('')
@@ -153,7 +153,7 @@ async function verify(signature: string) {
         <span class="font-semibold">{{ validSignature.signatureTime }}.</span>
         Dit zijn de gegevens waarmee het bericht ondertekend is:
       </p>
-      <AttributeList :attributes="validSignature.disclosedValues" />
+      <DisclosedAttributeList :attributes="validSignature.disclosedValues" />
     </div>
   </div>
 </template>

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import Header from '@/components/Header.vue'
 import type { DisclosedValue } from '@/api/types'
-import AttributeList from '@/components/AttributeList.vue'
+import DisclosedAttributeList from '@/components/DisclosedAttributeList.vue'
 import RawLinkDisplay from '@/components/RawLinkDisplay.vue'
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const signatureText = computed(() => {
 <template>
   <Header>Gelukt!</Header>
   <p>Je hebt het bericht ondertekend met de volgende gegevens van jou:</p>
-  <AttributeList class="mt-4" :attributes="disclosed" />
+  <DisclosedAttributeList class="mt-4" :attributes="disclosed" />
   <p class="my-4">
     Hieronder vind je het ondertekende bericht. Om het te lezen en te zien door wie de afspraak
     ondertekend is, kan iemand hem invullen op

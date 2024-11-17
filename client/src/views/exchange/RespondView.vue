@@ -8,9 +8,10 @@ import router from '@/router'
 
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
 import ResponseDisclosureView from './ResponseDisclosureView.vue'
-import { attributeDisplayOptions, publicAttributeDisplayOptions } from '@/lib/attributes'
+import { publicAttributeDisplayOptions } from '@/lib/attributes'
 import Title from '@/components/Title.vue'
-import AttributeList from '@/components/AttributeList.vue'
+import DisclosedAttributeList from '@/components/DisclosedAttributeList.vue'
+import RequestedAttributeList from '@/components/RequestedAttributeList.vue'
 
 const props = defineProps<{
   exchangeId: string
@@ -80,16 +81,7 @@ loadExchange()
         wil graag gegevens met je uitwisselen. Als je hiermee akkoord gaat krijgen jullie de
         volgende gegevens van elkaar te zien:
       </p>
-      <ul class="list-disc list-inside mt-4 ps-2 font-semibold">
-        <template v-for="(option, index) of attributeDisplayOptions">
-          <li
-            v-if="option.requiredAttributes.every((id) => exchange!.attributes.includes(id))"
-            :key="index"
-          >
-            {{ option.label }}
-          </li>
-        </template>
-      </ul>
+      <RequestedAttributeList :attributes="exchange!.attributes" />
       <template v-if="!confirmed">
         <p class="mt-4 font-semibold">Wil je deze gegevens delen?</p>
         <div class="flex gap-4 mt-4">
@@ -112,9 +104,9 @@ loadExchange()
         Gefeliciteerd! Je hebt gegevens uitgewisseld. Dit zijn de gegevens die je van de ander hebt
         ontvangen:
       </p>
-      <AttributeList class="mt-4" :attributes="result!.initiator_attribute_values" />
+      <DisclosedAttributeList class="mt-4" :attributes="result!.initiator_attribute_values" />
       <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen:</p>
-      <AttributeList class="mt-4" :attributes="result!.response_attribute_values" />
+      <DisclosedAttributeList class="mt-4" :attributes="result!.response_attribute_values" />
     </template>
   </div>
   <ConfirmationDialog
