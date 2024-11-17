@@ -18,9 +18,8 @@ async function copyLink() {
 </script>
 <template>
   <div class="font-mono break-all select-all bg-yivi-lightblue py-2 px-4">
-    {{ link }}
     <button @click="copyLink">
-      <Copy class="inline ms-2 w-4 h-4 hover:scale-110 transition" />
-    </button>
+      <Copy class="inline me-2 w-4 h-4 hover:scale-110 transition" /></button
+    >{{ link }}
   </div>
 </template>

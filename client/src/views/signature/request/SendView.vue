@@ -18,14 +18,14 @@ const mailtoUrl = computed(() => {
   const subject = 'Afspraak ondertekenen met DIYivi'
   const body =
     'Ik wil graag dat je een afspraak ondertekent met DIYivi.\n' +
-    'Open deze link om de afspraak te bekijken, en eventueel ondertekenen:\n\n'
+    'Open deze link om de afspraak te bekijken, en eventueel te ondertekenen:\n\n'
 
   return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + respondUrl.value)}`
 })
 const whatsappUrl = computed(() => {
   const content =
     'Ik wil graag dat je een afspraak ondertekent met DIYivi.\n' +
-    'Open deze link om de afspraak te bekijken, en eventueel ondertekenen:\n\n'
+    'Open deze link om de afspraak te bekijken, en eventueel te ondertekenen:\n\n'
 
   return `whatsapp://send?text=${encodeURIComponent(content + respondUrl.value)}`
 })
