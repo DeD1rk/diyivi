@@ -28,8 +28,8 @@ async def send_initiator_signature_result_email(
         f"""Beste gebruiker van DIYivi,
 
 Gefeliciteerd! Iemand heeft gereageerd op je verzoek om een afspraak te ondertekenen.
-Hier is het ondertekende bericht. Open de link of kopieer hem op
-{settings.client_origin}/signature/verify/ om de handtekening te bekijken.
+Hier is het ondertekende bericht. Open de lange link hieronder of kopieer hem en vul hem
+in op {settings.client_origin}/signature/verify/ om de handtekening te bekijken.
 
 {signature}
 

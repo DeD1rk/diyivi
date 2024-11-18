@@ -1,10 +1,15 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
+import pytest
+import pytest_asyncio
+from fakeredis import FakeAsyncRedis
 from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from app.config import settings
-from app.exchanges.dependencies import _storage
+from app.dependencies import _fake_redis_server
+from app.exchanges.dependencies import ExchangesStorage
 from app.exchanges.models import DisclosedValue, Exchange, ExchangeReply, ExchangeType
 from app.main import app
 from app.yivi.models import (
@@ -61,22 +66,33 @@ _common_result_jwt_fields = {
 }
 
 
-class TestCreateExchange:
-    def test_create_exchange(self):
-        _storage._exchanges.clear()
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
-        response = client.post(
-            "/api/exchanges/create/",
-            json={
-                "attributes": [
-                    "pbdf.sidn-pbdf.email.email",
-                    "pbdf.gemeente.personalData.fullname",
-                ],
-                "type": "1-to-1",
-                "send_email": True,
-                "public_initiator_attributes": ["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
-            },
-        )
+
+@pytest_asyncio.fixture(scope="function")
+async def storage():
+    async with FakeAsyncRedis(server=_fake_redis_server) as client:
+        yield ExchangesStorage(client)
+
+
+class TestCreateExchange:
+    @pytest.mark.anyio
+    async def test_create_exchange(self, storage):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/exchanges/create/",
+                json={
+                    "attributes": [
+                        "pbdf.sidn-pbdf.email.email",
+                        "pbdf.gemeente.personalData.fullname",
+                    ],
+                    "type": "1-to-1",
+                    "send_email": True,
+                    "public_initiator_attributes": ["pbdf.sidn-pbdf.mobilenumber.mobilenumber"],
+                },
+            )
 
         assert response.status_code == 200
         response_data = response.json()
@@ -97,7 +113,8 @@ class TestCreateExchange:
         ]
 
         # Check what was saved in the storage.
-        exchange = Exchange.model_validate_json(_storage._exchanges[response_data["id"]])
+        exchange = await storage.get_exchange(response_data["id"])
+        assert exchange is not None
         assert exchange.initiator_attribute_values is None
         assert exchange.public_initiator_attribute_values is None
         assert exchange.public_initiator_attributes == ["pbdf.sidn-pbdf.mobilenumber.mobilenumber"]
@@ -137,27 +154,32 @@ class TestStartExchange:
         issuancetime=_issuance_time,
     )
 
-    def test_exchange_not_found(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_exchange_not_found(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.post("/api/exchanges/0000000000000000/start/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post("/api/exchanges/0000000000000000/start/")
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
-    def test_incorrect_initiator_secret(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_incorrect_initiator_secret(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": "b" * 32,
-                "disclosure_result": "dummy",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": "b" * 32,
+                    "disclosure_result": "dummy",
+                },
+            )
         assert response.status_code == 400
         assert response.json() == {"detail": "Incorrect initiator secret"}
 
-    def test_exchange_already_started(self):
+    @pytest.mark.anyio
+    async def test_exchange_already_started(self, storage):
         exchange = self.exchange.model_copy()
         exchange.public_initiator_attribute_values = [
             DisclosedValue(id=self.phonenumber.id, value=self.phonenumber.value)
@@ -165,33 +187,37 @@ class TestStartExchange:
         exchange.initiator_attribute_values = [
             DisclosedValue(id=self.email.id, value=self.email.value)
         ]
-        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+        await storage.save_exchange(exchange)
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": self.exchange.initiator_secret,
-                "disclosure_result": "dummy",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": self.exchange.initiator_secret,
+                    "disclosure_result": "dummy",
+                },
+            )
         assert response.status_code == 400
         assert response.json() == {"detail": "Exchange already started"}
 
-    def test_invalid_jwt(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_invalid_jwt(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": self.exchange.initiator_secret,
-                "disclosure_result": "dummy",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": self.exchange.initiator_secret,
+                    "disclosure_result": "dummy",
+                },
+            )
         assert response.status_code == 400
         assert response.json() == {"detail": "Invalid JWT"}
 
-    def test_incorrect_attributes(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_incorrect_attributes(self, storage):
+        await storage.save_exchange(self.exchange)
 
         # Real disclosure result JWT but without email attribute.
         disclosure_result = jwt.encode(
@@ -212,18 +238,20 @@ class TestStartExchange:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": self.exchange.initiator_secret,
-                "disclosure_result": disclosure_result,
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": self.exchange.initiator_secret,
+                    "disclosure_result": disclosure_result,
+                },
+            )
         assert response.status_code == 400
         assert response.json() == {"detail": "Invalid session result"}
 
-    def test_invalid_timestamp(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_invalid_timestamp(self, storage):
+        await storage.save_exchange(self.exchange)
 
         disclosure_result = jwt.encode(
             {
@@ -239,18 +267,20 @@ class TestStartExchange:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": self.exchange.initiator_secret,
-                "disclosure_result": disclosure_result,
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": self.exchange.initiator_secret,
+                    "disclosure_result": disclosure_result,
+                },
+            )
         assert response.status_code == 400
         assert response.json() == {"detail": "Invalid JWT"}
 
-    def test_successful_start(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_successful_start(self, storage):
+        await storage.save_exchange(self.exchange)
 
         disclosure_result = jwt.encode(
             {
@@ -264,18 +294,19 @@ class TestStartExchange:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/start/",
-            json={
-                "initiator_secret": self.exchange.initiator_secret,
-                "disclosure_result": disclosure_result,
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/start/",
+                json={
+                    "initiator_secret": self.exchange.initiator_secret,
+                    "disclosure_result": disclosure_result,
+                },
+            )
 
         assert response.status_code == 204
         assert response.content == b""
 
-        exchange = Exchange.model_validate_json(_storage._exchanges[self.exchange.id])
+        exchange = await storage.get_exchange(self.exchange.id)
         assert exchange.public_initiator_attribute_values == [
             DisclosedValue(id=self.phonenumber.id, value=self.phonenumber.value)
         ]
@@ -293,19 +324,24 @@ class TestGetExchangeInfo:
         expire_at=datetime.now(UTC) + timedelta(seconds=600),
     )
 
-    def test_exchange_not_found(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_exchange_not_found(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.get("/api/exchanges/0000000000000000/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get("/api/exchanges/0000000000000000/")
         assert response.status_code == 404
 
-    def test_exchange_not_started(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_exchange_not_started(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.get(f"/api/exchanges/{self.exchange.id}/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(f"/api/exchanges/{self.exchange.id}/")
         assert response.status_code == 404
 
-    def test_successful(self):
+    @pytest.mark.anyio
+    async def test_successful(self, storage):
         exchange = self.exchange.model_copy()
         exchange.public_initiator_attribute_values = [
             DisclosedValue(
@@ -322,9 +358,10 @@ class TestGetExchangeInfo:
             )
         ]
 
-        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+        await storage.save_exchange(exchange)
 
-        response = client.get(f"/api/exchanges/{self.exchange.id}/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(f"/api/exchanges/{self.exchange.id}/")
 
         assert response.status_code == 200
         response_data = response.json()
@@ -352,7 +389,8 @@ class TestGetExchangeInfo:
             }
         ]
 
-    def test_already_responded(self):
+    @pytest.mark.anyio
+    async def test_already_responded(self, storage):
         reply = ExchangeReply(
             exchange_id=self.exchange.id,
             attribute_values=[
@@ -364,10 +402,11 @@ class TestGetExchangeInfo:
                 )
             ],
         )
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-        _storage._exchange_replies[self.exchange.id] = [reply.model_dump_json()]
+        await storage.save_exchange(self.exchange)
+        await storage.push_reply(self.exchange, reply)
 
-        response = client.get(f"/api/exchanges/{self.exchange.id}/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(f"/api/exchanges/{self.exchange.id}/")
 
         # Adding a second reply to a 1-to-1 exchange is not allowed.
         assert response.status_code == 404
@@ -400,24 +439,29 @@ class TestRespond:
         issuancetime=_issuance_time,
     )
 
-    def test_exchange_not_found(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_exchange_not_found(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.post("/api/exchanges/0000000000000000/respond/")
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post("/api/exchanges/0000000000000000/respond/")
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
-    def test_exchange_not_started(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_exchange_not_started(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/respond/",
-            json={"disclosure_result": "dummy"},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/respond/",
+                json={"disclosure_result": "dummy"},
+            )
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
 
-    def test_incorrect_attributes(self):
+    @pytest.mark.anyio
+    async def test_incorrect_attributes(self, storage):
         exchange = self.exchange.model_copy()
         exchange.public_initiator_attribute_values = [
             DisclosedValue(id=self.phonenumber.id, value=self.phonenumber.value)
@@ -425,7 +469,7 @@ class TestRespond:
         exchange.initiator_attribute_values = [
             DisclosedValue(id=self.email.id, value=self.email.value)
         ]
-        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+        await storage.save_exchange(exchange)
 
         result = jwt.encode(
             {
@@ -438,15 +482,17 @@ class TestRespond:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/respond/",
-            json={"disclosure_result": result},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/respond/",
+                json={"disclosure_result": result},
+            )
 
         assert response.status_code == 400
         assert response.json() == {"detail": "Invalid session result"}
 
-    def test_successful(self):
+    @pytest.mark.anyio
+    async def test_successful(self, storage):
         exchange = self.exchange.model_copy()
         exchange.public_initiator_attribute_values = [
             DisclosedValue(id=self.phonenumber.id, value=self.phonenumber.value)
@@ -454,7 +500,7 @@ class TestRespond:
         exchange.initiator_attribute_values = [
             DisclosedValue(id=self.email.id, value=self.email.value)
         ]
-        _storage._exchanges = {self.exchange.id: exchange.model_dump_json()}
+        await storage.save_exchange(exchange)
 
         result = jwt.encode(
             {
@@ -467,10 +513,11 @@ class TestRespond:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/respond/",
-            json={"disclosure_result": result},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/respond/",
+                json={"disclosure_result": result},
+            )
 
         assert response.status_code == 200
         assert response.json()["public_initiator_attribute_values"] == [
@@ -504,18 +551,19 @@ class TestRespond:
             },
         ]
 
-        assert len(_storage._exchange_replies[exchange.id]) == 1
-        saved_reply = ExchangeReply.model_validate_json(_storage._exchange_replies[exchange.id][0])
+        saved_replies = await storage.get_replies(exchange.id)
+        assert len(saved_replies) == 1
 
-        assert response.json()["recipient_secret"] == saved_reply.recipient_secret
+        assert response.json()["recipient_secret"] == saved_replies[0].recipient_secret
 
-    def test_already_responded(self):
+    @pytest.mark.anyio
+    async def test_already_responded(self, storage):
         reply = ExchangeReply(
             exchange_id=self.exchange.id,
             attribute_values=[DisclosedValue(id=self.email.id, value=self.email.value)],
         )
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-        _storage._exchange_replies[self.exchange.id] = [reply.model_dump_json()]
+        await storage.save_exchange(self.exchange)
+        await storage.push_reply(self.exchange, reply)
 
         result = jwt.encode(
             {
@@ -528,10 +576,11 @@ class TestRespond:
             algorithm="RS256",
         )
 
-        response = client.post(
-            f"/api/exchanges/{self.exchange.id}/respond/",
-            json={"disclosure_result": result},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/exchanges/{self.exchange.id}/respond/",
+                json={"disclosure_result": result},
+            )
 
         # Adding a second reply to a 1-to-1 exchange is not allowed.
         assert response.status_code == 404
@@ -583,25 +632,29 @@ class TestGetExchangeResult:
         attribute_values=[DisclosedValue(id=email2.id, value=email2.value)],
     )
 
-    def test_no_replies(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
+    @pytest.mark.anyio
+    async def test_no_replies(self, storage):
+        await storage.save_exchange(self.exchange)
 
-        response = client.get(
-            f"/api/exchanges/{self.exchange.id}/result/",
-            params={"secret": self.exchange.initiator_secret},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(
+                f"/api/exchanges/{self.exchange.id}/result/",
+                params={"secret": self.exchange.initiator_secret},
+            )
 
         assert response.status_code == 200
         assert response.json()["replies"] == []
 
-    def test_successful(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-        _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
+    @pytest.mark.anyio
+    async def test_successful(self, storage):
+        await storage.save_exchange(self.exchange)
+        await storage.push_reply(self.exchange, self.reply)
 
-        response = client.get(
-            f"/api/exchanges/{self.exchange.id}/result/",
-            params={"secret": self.exchange.initiator_secret},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(
+                f"/api/exchanges/{self.exchange.id}/result/",
+                params={"secret": self.exchange.initiator_secret},
+            )
 
         assert response.status_code == 200
         assert response.json()["public_initiator_attribute_values"] == [
@@ -637,84 +690,16 @@ class TestGetExchangeResult:
             ]
         ]
 
-    def test_invalid_secret(self):
-        _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-        _storage._exchange_replies[self.exchange.id] = [self.reply.model_dump_json()]
+    @pytest.mark.anyio
+    async def test_invalid_secret(self, storage):
+        await storage.save_exchange(self.exchange)
+        await storage.push_reply(self.exchange, self.reply)
 
-        response = client.get(
-            f"/api/exchanges/{self.exchange.id}/result/",
-            params={"secret": "b" * 32},
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get(
+                f"/api/exchanges/{self.exchange.id}/result/",
+                params={"secret": "b" * 32},
+            )
 
         assert response.status_code == 404
         assert response.json() == {"detail": "Exchange not found"}
-
-    # def test_using_recipient_secret(self):
-    #     # TODO: This is the many-to-many case. In other scenarios, any other recipient's replies
-    #     # should be filtered out.
-    #     reply2 = ExchangeReply(
-    #         exchange_id=self.exchange.id,
-    #         attribute_values=[
-    #             DisclosedValue(
-    #                 id="pbdf.sidn-pbdf.email.email",
-    #                 value=TranslatedString(
-    #                     default="baz@example.com", en="baz@example.com", nl="baz@example.com"
-    #                 ),
-    #             )
-    #         ],
-    #     )
-
-    #     _storage._exchanges = {self.exchange.id: self.exchange.model_dump_json()}
-    #     _storage._exchange_replies[self.exchange.id] = [
-    #         self.reply.model_dump_json(),
-    #         reply2.model_dump_json(),
-    #     ]
-
-    #     response = client.get(
-    #         f"/api/exchanges/{self.exchange.id}/result/",
-    #         params={"secret": reply2.recipient_secret},
-    #     )
-
-    #     assert response.status_code == 200
-    #     assert response.json()["public_initiator_attribute_values"] == [
-    #         {
-    #             "id": "pbdf.sidn-pbdf.mobilenumber.mobilenumber",
-    #             "value": {
-    #                 "": "31612345678",
-    #                 "en": "31612345678",
-    #                 "nl": "31612345678",
-    #             },
-    #         },
-    #     ]
-    #     assert response.json()["initiator_attribute_values"] == [
-    #         {
-    #             "id": "pbdf.sidn-pbdf.email.email",
-    #             "value": {
-    #                 "": "foo@example.com",
-    #                 "en": "foo@example.com",
-    #                 "nl": "foo@example.com",
-    #             },
-    #         },
-    #     ]
-    #     assert response.json()["replies"] == [
-    #         [
-    #             {
-    #                 "id": "pbdf.sidn-pbdf.email.email",
-    #                 "value": {
-    #                     "": "bar@example.com",
-    #                     "en": "bar@example.com",
-    #                     "nl": "bar@example.com",
-    #                 },
-    #             },
-    #         ],
-    #         [
-    #             {
-    #                 "id": "pbdf.sidn-pbdf.email.email",
-    #                 "value": {
-    #                     "": "baz@example.com",
-    #                     "en": "baz@example.com",
-    #                     "nl": "baz@example.com",
-    #                 },
-    #             },
-    #         ],
-    #     ]

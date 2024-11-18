@@ -144,7 +144,7 @@ def get_signature_request_info(
     },
     status_code=204,
 )
-def submit_signature(
+async def submit_signature(
     signature_request: Annotated[SignatureRequest, Depends(get_signature_request)],
     signature_result: Annotated[str, Body(title="Signature session result JWT", embed=True)],
     storage: Annotated[SignaturesStorage, Depends(get_signatures_storage)],
@@ -168,5 +168,7 @@ def submit_signature(
         raise HTTPException(status_code=400, detail="Invalid session result")
 
     background_tasks.add_task(send_initiator_signature_result_email, signature_request, result)
+
+    await storage.delete_request(signature_request.id)
 
     return
