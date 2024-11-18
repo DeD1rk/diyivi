@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { InitiatorExchangeResponse, ExchangeReply } from '@/api/types'
+import type { InitiatorExchangeResponse, ExchangeReply, DisclosedValue } from '@/api/types'
 import Title from '@/components/Title.vue'
 import DisclosedAttributeList from '@/components/DisclosedAttributeList.vue'
 
 const props = defineProps<{
   exchange: InitiatorExchangeResponse
   reply: ExchangeReply
+  initiatorAttributes: DisclosedValue[]
 }>()
 </script>
 <template>
@@ -16,6 +17,7 @@ const props = defineProps<{
       gegevens die je hebt ontvangen:
     </p>
     <DisclosedAttributeList class="mt-4" :attributes="reply" />
-    <!-- <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen:</p> -->
+    <p class="mt-4">Dit zijn de gegevens die de ander van jou heeft gekregen:</p>
+    <DisclosedAttributeList class="mt-4" :attributes="initiatorAttributes" />
   </div>
 </template>

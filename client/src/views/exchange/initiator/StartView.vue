@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import type { InitiatorExchangeResponse } from '@/api/types'
+import type { DisclosedValue, InitiatorExchangeResponse } from '@/api/types'
 import { useToast } from '@/components/ui/toast'
 import Title from '@/components/Title.vue'
 import Header from '@/components/Title.vue'
 import client from '@/api'
+import * as jose from 'jose'
 
 // @ts-ignore
 import yivi from '@privacybydesign/yivi-frontend'
@@ -13,7 +14,7 @@ const props = defineProps<{
   exchange: InitiatorExchangeResponse
 }>()
 const emit = defineEmits<{
-  started: []
+  started: [initiatorAttributes: DisclosedValue[]]
 }>()
 
 const { toast } = useToast()
@@ -40,7 +41,7 @@ onMounted(async () => {
   })
 
   try {
-    const result: string = await disclosure.start()
+    const resultJwt: string = await disclosure.start()
     const { error } = await client.POST('/api/exchanges/{exchange_id}/start/', {
       params: {
         path: {
@@ -49,22 +50,24 @@ onMounted(async () => {
       },
       body: {
         initiator_secret: props.exchange.initiator_secret,
-        disclosure_result: result
+        disclosure_result: resultJwt
       }
     })
     if (error) {
-      toast({
-        title: 'Oeps! Er ging iets mis',
-        description: 'Er is iets misgegaan bij het beginnen van de uitwisseling.'
-      })
-      console.error(error)
-    } else {
-      emit('started')
-      console.log(
-        'Send this to the other party:',
-        `${window.origin}/exchange/respond/${props.exchange.id}/`
-      )
+      throw new Error('Error starting exchange: ' + error)
     }
+    const result: {
+      proofStatus: string
+      disclosed: DisclosedValue[][]
+    } = await jose.decodeJwt(resultJwt)
+    if (result.proofStatus !== 'VALID') {
+      throw new Error('Invalid proof status')
+    }
+    emit('started', result.disclosed.flat())
+    console.log(
+      'Send this to the other party:',
+      `${window.origin}/exchange/respond/${props.exchange.id}/`
+    )
   } catch (error) {
     toast({
       title: 'Oeps! Er ging iets mis',
