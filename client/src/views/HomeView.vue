@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import Title from '@/components/Title.vue'
 import Header from '@/components/Header.vue'
+import { ArrowRightLeft, Signature, Forward, TextSearch } from 'lucide-vue-next'
 </script>
 
 <template>
@@ -28,7 +29,9 @@ import Header from '@/components/Header.vue'
         </p>
 
         <Button as-child class="mt-4">
-          <RouterLink to="/exchange/start/">Leer elkaar kennen</RouterLink>
+          <RouterLink to="/exchange/start/"
+            ><ArrowRightLeft class="w-4 h-4 me-2" />Leer elkaar kennen</RouterLink
+          >
         </Button>
       </div>
 
@@ -41,10 +44,14 @@ import Header from '@/components/Header.vue'
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <Button as-child>
-            <RouterLink to="/signature/create/">Onderteken zelf</RouterLink>
+            <RouterLink to="/signature/create/"
+              ><Signature class="w-4 h-4 me-2" />Onderteken zelf</RouterLink
+            >
           </Button>
           <Button as-child>
-            <RouterLink to="/signature/request/create/">Vraag iemand anders te tekenen</RouterLink>
+            <RouterLink to="/signature/request/create/"
+              ><Forward class="w-4 h-4 me-2" />Vraag iemand anders te tekenen</RouterLink
+            >
           </Button>
         </div>
         <p class="text-sm mt-4">
@@ -52,7 +59,9 @@ import Header from '@/components/Header.vue'
           heeft.
         </p>
         <Button as-child class="mt-4">
-          <RouterLink to="/signature/verify/">Handtekening controleren</RouterLink>
+          <RouterLink to="/signature/verify/"
+            ><TextSearch class="w-4 h-4 me-2" />Handtekening controleren</RouterLink
+          >
         </Button>
       </div>
     </div>
