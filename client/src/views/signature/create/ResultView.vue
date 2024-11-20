@@ -24,7 +24,9 @@ const signatureText = computed(() => {
   <p class="my-4">
     Hieronder vind je het ondertekende bericht. Om het te lezen en te zien door wie de afspraak
     ondertekend is, kan iemand hem invullen op
-    <a :href="verifyUrl" class="font-mono" target="_blank">{{ verifyUrl }}</a
+    <a :href="verifyUrl" class="text-yivi-red hover:underline underline-offset-2" target="_blank">{{
+      verifyUrl
+    }}</a
     >. Het ondertekende bericht zelf is ook een link naar deze pagina, dus men kan deze link
     simpelweg openen. Geef deze instructie mee aan de ontvanger van het ondertekende bericht, zodat
     die weet hoe hij het bericht kan lezen en de handtekening kan controleren.
