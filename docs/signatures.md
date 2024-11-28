@@ -29,6 +29,94 @@ they have not been used much. This likely has several reasons:
   which does not present the actual signature to the user, and does not allow for verification.
 
 - There is/was no API endpoint for signature verification in `irma server`.
-  For DIYivi, I have implemented this, and this may (have) be(en) merged into `irmago` some day.
+  For DIYivi, I have implemented this, and this may (have) be(en) merged into `irmago` some day. See https://github.com/privacybydesign/irmago/pull/391.
 
-## Desired properties
+## Features
+
+This is the functionality provided by DIYivi:
+
+1. The user can create a signature on a plain-text message, using attributes selected by the user.
+2. A user (Alice) can create a request for someone else (Bob) to sign a message, with message and attributes selected by Alice.
+3. A user can verify a signature.
+
+
+### 1. Create a signature
+
+The user can create a signature on a plain-text message, using attributes selected by the user. The DIYivi client can do this communicating directly to the Yivi server.
+
+```mermaid
+
+sequenceDiagram
+    participant ac as Alice (client)
+    participant ay as Alice (Yivi app)
+    participant yivi as Yivi server
+
+    note left of ac: Alice provides messages and<br>selects attributes in client
+    ac ->>+ yivi: Start signing session
+    ac ->>+ ay: Session QR / deeplink
+    yivi ->> ay: Session info (message and attributes)
+    note left of ac: Yivi app presents <br>message and attributes
+    ay ->>- yivi: Signature
+    yivi ->>- ac: JWT with signature
+
+```
+
+Here, the Yivi server gets access to see the message, attributes, and signature.
+The Yivi server could potentially try to trick the user into signing a different message.
+The Yivi app will display the message that is being signed which partially protects against that.
+
+
+### 2. Signature request
+
+Alice chooses the message and the kinds of attributes. Alice creates the request on the DIYivi backend, and discloses her own email address to DIYivi. Then, Alice sends a link to Bob, who retrieves the message, attributes and a session request JWT from the DIYivi backend. Bob then signs the message, sends the signature result JWT to the DIYivi backend, which verifies the JWT and sends an email to Alice with the signature.
+
+```mermaid
+
+sequenceDiagram
+    participant a as Alice
+    participant yivi as Yivi server
+    participant server as DIYivi backend
+    participant b as Bob
+
+    a ->>+ server: Create signature request
+    server ->> a: OK (id, session request JWT)
+    a ->>+ yivi: Disclose email address
+    yivi ->>- a: Result JWT (email)
+    a ->> server: Result JWT (email)
+    a ->> b: Share signature request (id)
+    b ->> server: Get signature request (id)
+    server ->> b: Signature session request JWT
+    b ->>+ yivi: Sign (signature session request JWT)
+    yivi ->>- b: Signature result JWT
+    b ->> server: Signature result JWT
+    server ->>- a: Send email with signature
+
+```
+
+Here, both the DIYivi backend and the Yivi server can see the message, attributes and signature.
+The signature will also be sent over email, which of course is not the most secure.
+The Yivi server could potentially try to trick the user into signing a different message.
+The Yivi app will display the message that is being signed which partially protects against that.
+
+### 3. Verify a signature
+
+The user can verify a signature. The DIYivi client can do this communicating directly to the Yivi server.
+Signatures created with DIYivi are formatted as a link: `https://<diyivi domain>/signature/verify/#<signature data>`.
+When that link is opened, it will open the DIYivi client, which immediately verifies the signature.
+This makes for an intuitive user experience: a user who has received a signature can often simply click it to verify it.
+
+```mermaid
+
+sequenceDiagram
+    participant a as Alice
+    participant ac as DIYivi client
+    participant yivi as Yivi server
+
+    a ->>+ ac: Open / paste signature
+    ac ->>+ yivi: Verify signature
+    yivi ->>- ac: Result (message, attributes)
+    ac ->>- a: Message and attributes
+```
+
+Here, the Yivi server can see the message, attributes and signature.
+The Yivi server could lie about the verification result, but anyone could verify the signature independently.
