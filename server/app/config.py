@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     )
 
     signature_request_ttl: int = Field(
-        default=3600 * 48,
+        default=3600 * 24 * 7,
         description="""Time in seconds to store an exchange that has started.
 
         After this time, a signature request will be deleted.

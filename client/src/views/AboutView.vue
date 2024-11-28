@@ -220,15 +220,146 @@ import {
             persoonlijke gegevens uitwisselen om elkaar beter te leren kennen, zonder dat je te veel
             over jezelf deelt.
           </p>
+          <h3 class="font-semibold text-base mt-4">Open source</h3>
+          <p>
+            Wil je precies weten hoe DIYivi werkt? Dat kan! De hele broncode van DIYivi is openbaar,
+            en kun je inzien op
+            <a
+              href="https://github.com/DeD1rk/diyivi/"
+              target="_blank"
+              class="text-yivi-red hover:underline underline-offset-2"
+              >https://github.com/DeD1rk/diyivi/</a
+            >. Daar vind je uitgebreide (technische) documentatie. Zo kun je zelf controleren wat
+            DIYivi doet met jouw data. Je kan hier ook eventuele (beveiligings)problemen melden.
+          </p>
         </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="hoe-werkt-diyivi">
-        <AccordionTrigger>Hoe werkt DIYivi?</AccordionTrigger>
-        <AccordionContent>...</AccordionContent>
       </AccordionItem>
       <AccordionItem value="privacy">
         <AccordionTrigger>Privacy</AccordionTrigger>
-        <AccordionContent>...</AccordionContent>
+        <AccordionContent>
+          <p>
+            DIYivi probeert functionaliteit zo privacy-vriendelijk mogelijk aan te bieden. Alle
+            gegevens die we verwerken verwijderen we zo snel mogelijk. Gegevens worden nooit met een
+            derde partij gedeeld of door ons zelf gebruikt op een manier die niet nodig is voor het
+            aanbieden van de functionaliteit. Hieronder vindt je de data die onze servers te zien
+            krijgen, en wat er mee gebeurt.
+          </p>
+          <h3 class="font-semibold text-base mt-4">Elkaar leren kennen</h3>
+          <ul class="list-disc list-outside mt-4 ps-4">
+            <li>
+              <div class="">
+                <span class="font-medium">De persoonsgegevens die je uitwisselt.</span>
+                <p>
+                  Deze worden opgeslagen en per e-mail verstuurd naar degene die het initiatief
+                  heeft genomen. Deze gegevens worden 48 uur na het beginnen van de uitwisseling
+                  verwijderd.
+                </p>
+              </div>
+            </li>
+            <li>
+              <div class="">
+                <span class="font-medium">E-mailadres van de initiatiefnemer.</span>
+                <p>
+                  Dit adres wordt gebruikt om een email te sturen met de persoonsgegevens van de
+                  andere gebruiker. Ook dit e-mailadres wordt na 48 uur verwijderd.
+                </p>
+              </div>
+            </li>
+          </ul>
+          <h3 class="font-semibold text-base mt-4">Onderteken zelf</h3>
+          <ul class="list-disc list-outside mt-4 ps-4">
+            <li>
+              <div class="">
+                <span class="font-medium">
+                  Het bericht dat je ondertekent, en de persoonsgegevens waarmee je tekent.</span
+                >
+
+                <p>
+                  Tijdens het maken van een handtekening worden deze gegevens via onze servers naar
+                  de Yivi app op je telefoon gestuurd. Onze servers krijgen dus het bericht en je
+                </p>
+                persoonsgegevens te zien, maar we slaan die niet op nadat de handtekening gemaakt
+                is.
+              </div>
+            </li>
+          </ul>
+          <h3 class="font-semibold text-base mt-4">Vraag iemand anders te tekenen</h3>
+          <ul class="list-disc list-outside mt-4 ps-4">
+            <li>
+              <div class="">
+                <span class="font-medium">Het bericht dat ondertekend moet worden.</span>
+                <p>
+                  Tussen het moment dat het verzoek om te tekenen wordt aangemaakt en het moment dat
+                  de handtekening gezet is, slaan we het bericht dat je ondertekend wil krijgen op.
+                  Zodra de handtekening gezet is (of uiterlijk na 7 dagen als er dan nog geen
+                  handtekening gemaakt is) wordt het bericht van onze servers verwijderd.
+                </p>
+              </div>
+            </li>
+            <li>
+              <div class="">
+                <span class="font-medium">
+                  Het ondertekende bericht, inclusief de persoonsgegevens waarmee getekend is.</span
+                >
+
+                <p>
+                  Zodra er een handtekening gemaakt is naar aanleiding van een verzoek, wordt het
+                  ondertekende bericht naar de gebruiker gestuurd die het verzoek heeft aangemaakt.
+                  Daarna slaan we het ondertekende bericht niet op.
+                </p>
+              </div>
+            </li>
+            <li>
+              <div class="">
+                <span class="font-medium">E-mailadres van de initiatiefnemer.</span>
+                <p>
+                  Dit adres wordt gebruikt om een email te sturen met het ondertekende bericht. Dit
+                  adres wordt verwijderd zodra de e-mail verstuurd is, of na 7 dagen als er dan nog
+                  geen handtekening gemaakt is.
+                </p>
+              </div>
+            </li>
+          </ul>
+          <h3 class="font-semibold text-base mt-4">Handtekening controleren</h3>
+          <ul class="list-disc list-outside mt-4 ps-4">
+            <li>
+              <div class="">
+                <span class="font-medium">
+                  Het ondertekende bericht, inclusief de persoonsgegevens waarmee getekend is.</span
+                >
+
+                <p>
+                  Om de handtekening te controleren wordt het ondertekende bericht naar onze servers
+                  opgestuurd. Die controleren de handtekening en sturen het resultaat terug. Het
+                  bericht en de persoonsgegevens worden niet opgeslagen.
+                </p>
+              </div>
+            </li>
+          </ul>
+          <h3 class="font-semibold text-base mt-4">Algemeen</h3>
+          <ul class="list-disc list-outside mt-4 ps-4">
+            <li>
+              <div class="">
+                <span class="font-medium">IP-adressen van alle gebruikers van de website.</span>
+                <p>
+                  Onze servers krijgen IP-adressen van alle gebruikers te zien. Dat is nodig om een
+                  dienst op het internet aan te bieden. We bewaren deze en andere technische
+                  gegevens niet.
+                </p>
+              </div>
+            </li>
+          </ul>
+          <p class="mt-4">
+            DIYivi is open source, dus de technisch onderlegde gebruiker kan in
+            <a
+              href="https://github.com/DeD1rk/diyivi/"
+              target="_blank"
+              class="text-yivi-red hover:underline underline-offset-2"
+              >de broncode</a
+            >
+            precies nagaan wat er met je gegevens gebeurt.
+          </p>
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   </div>
