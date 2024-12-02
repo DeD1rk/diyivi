@@ -11,8 +11,8 @@ import { ArrowRightLeft, Signature, Forward, TextSearch } from 'lucide-vue-next'
     <Title>Zelf aan de slag met digitale identiteit</Title>
     <p>
       In de digitale wereld weten we vaak niet zeker met wie we contact hebben. Dat kan allerlei
-      problemen geven, variërend van pijnlijke misverstanden tot ordinair bedrog. Via deze webpagina
-      kun je zekerheid krijgen en geven over wie met wie praat.
+      problemen geven, variërend van ongemakkelijke misverstanden tot ordinair bedrog. Via deze
+      webpagina kun je zekerheid krijgen en geven over wie met wie praat.
     </p>
 
     <div class="flex flex-col lg:flex-row gap-6 mt-6">

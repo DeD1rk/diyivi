@@ -27,8 +27,8 @@ const signatureText = computed(() => {
   <p>Dit zijn de gegevens van jou waarmee je getekend hebt:</p>
   <DisclosedAttributeList class="mt-4" :attributes="disclosed" />
   <p class="my-4">
-    Hieronder vind je het ondertekende bericht. Om het te lezen en te zien door wie de afspraak
-    ondertekend is, kan iemand hem invullen op
+    Hieronder vind je het onleesbare ondertekende bericht. Om het te lezen en om te zien door wie de
+    afspraak ondertekend is, kan iemand hem invullen op
     <a :href="verifyUrl" class="font-mono" target="_blank">{{ verifyUrl }}</a
     >. Het ondertekende bericht zelf is ook een link naar deze pagina, dus men kan deze link
     simpelweg openen. Geef deze instructie mee aan de ontvanger van het ondertekende bericht, zodat

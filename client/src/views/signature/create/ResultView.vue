@@ -22,8 +22,8 @@ const signatureText = computed(() => {
   <p>Je hebt het bericht ondertekend met de volgende gegevens van jou:</p>
   <DisclosedAttributeList class="mt-4" :attributes="disclosed" />
   <p class="my-4">
-    Hieronder vind je het ondertekende bericht. Om het te lezen en te zien door wie de afspraak
-    ondertekend is, kan iemand hem invullen op
+    Hieronder vind je het onleesbare ondertekende bericht. Om het te lezen en om te zien door wie de
+    afspraak ondertekend is, kan iemand hem invullen op
     <a :href="verifyUrl" class="text-yivi-red hover:underline underline-offset-2" target="_blank">{{
       verifyUrl
     }}</a
