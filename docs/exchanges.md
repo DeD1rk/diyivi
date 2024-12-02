@@ -2,181 +2,56 @@
 
 Doing a Yivi disclosure between two users (as opposed to the traditional user-website disclosure) is the primary feature of DIYivi. We call this an 'exchange'. This document describes the reasoning behind the design of this feature.
 
-## Desired properties
+## Background
 
 The first goal of DIYivi is for users to be able to disclose Yivi attributes to each other in a privacy-friendly and easy way.
 
 We assume that Alice and Bob are the participants in the exchange, and they have set up a (trusted) channel between them (e.g. through a messaging app or email).
+For usability, we require that an exchange requires only a single, one-way communication from Alice to Bob over this channel. Additionally, we require that both participants have to do only a single Yivi session.
 
-However, usability is important, so we require that an exchange requires only a single, one-way communication from Alice to Bob over this channel. Additionally, we require that both participants have to do only a single Yivi session.
+### Driver's license pilot
 
-Some features that we _would like_ are:
+In the past, some [research](https://openresearch.amsterdam/nl/page/104367/rijvaardigheid-aantonen-via-irma-op-je-mobiel-peer-to-peer)
+has been into the usability of a system where law enforcement officers
+can perform peer-to-peer exchanges of a driver's license credential. There, a frontend to request
+such attributes would be included in the Yivi app, where a police officer would show a QR code to
+a civilian, which, when scanned from the Yivi app, would:
 
-1. Zero-knowledgeness, where after the exchange between Alice and Bob, e.g. Bob does not learn anything he could use to e.g. impersonate Alice to Charlie.
-2. Escrow ('gelijk oversteken'), where Alice and Bob only see each other's attributes if both have disclosed them. Neither can cheat to see the other's attributes without disclosing their own.
-3. Server can't cheat: ideally, the server should not be able to convince Alice that anyone other than Bob is Bob.
-4. Privacy against the server: ideally the server should not know who is disclosing what to whom.
+- Present the officer's badge number (and optionally other contact information) to the civilian.
+- Request the attributes of the civilian, such as name, date of birth, and driver's license type and date,
+  as configured by the officer.
+- Indicate that the officer is legally allowed to request these attributes.
 
-It does not seem possible to achieve all of these features at the same time without changes to Yivi (given the bounds of requiring only one-way communication and one Yivi session per participant). So we need to make some trade-offs.
+This system was only a frontend prototype, and has not actually been implemented. It would
+require at least a backend IRMA server, and significant functionality in the Yivi app.
 
-### Escrow (2), and privacy from the server (4)
+This concept has clear similarities with the exchanges offered by DIYivi, and has been
+a source of inspiration for the (UI) design of the exchanges feature. A notable difference is
+that the prototype was built into the Yivi app, while DIYivi is a separate web application.
+For DIYivi, it does not seem reasonable to require significant changes to the Yivi app itself.
 
-Assuming that we require escrow, we need some third party that verifies the disclosures of Alice and Bob, before revealing the attributes.
-With Yivi, it is simply not possible for a party to verify a disclosure without seeing the attributes, so escrow requires that the server sees the attributes of both Alice and Bob. Of course, decentralized options may be possible that do not require a single server to see all attributes, but this would be very complex, and offers security only under the assumption that the servers do not collude.
+A very nice feature of this prototype is that there is a form of Relying Party authorization:
+the citizen sees who the poice officer is, and that they are legally allowed to ask for information.
 
-Additionally, it needs to be noted that in any case, the Yivi server involved in any Yivi session will always see the attributes of at least one of the parties.
+### European Union Digital Identity Wallet
 
-### Zero-knowledgeness (1), and server that can't cheat (3)
+The European Union is working on a framework for Digital Identity Wallets (EUDI Wallets),
+very similar to and inspired by Yivi.
+These EUDI Wallets will support offline, proximity-based disclosure of certain credentials.
+This means that they could support peer-to-peer disclosure of attributes without involving a third-party server.
+That can be a privacy-friendly way to exchange attributes which is not possible in Yivi, because Yivi apps
+can only communicate with a publicly reachable server that gets to see the attributes that are disclosed.
 
-Zero-knowledgeness is a crucial property, as without it, parties can simply cheat, so the system is not trustworthy.
-To have zero-knowledgeness, a solution where Alice and Bob obtain each other's disclosure JWTs is not possible, as then Alice can impersonate Bob to Charlie by replaying this disclosure JWT. So, we need one of the following:
+## Protocol
 
-- A solution where the server verifies the disclosures of Alice and Bob, and sends the results (but not the signed JWT that could be replayed) to both parties. This allows the server to cheat and see the attributes (violating properties 3 and 4), but it does allow for escrow (property 2).
-- A solution based on attribute-based signatures, such that the signatures can be verified but not replayed.
-  This requires that Alice and Bob include a nonce in their signatures, and that, somehow, they know which nonce to expect from the other party. This is not trivial:
-
-  - If the nonces are picked by the initiating party (Alice), then the Alice might be able to pick a nonce that was already used by another party earlier, allowing Alice to replay the other party's signature to Bob. Bob cannot replay a message to Alice.
-  - If the nonces are picked by the receiving party (Bob), then Bob might be able to pick a nonce that was already used by another party earlier, allowing Bob to replay the other party's signature to Alice. Alice cannot replay a message to Bob. This also requires Alice to wait for Bob to respond, before she can do her own disclosure, so it limits usability significantly.
-  - Doing an exchange between the parties to agree on a nonce might be possible. However, this also requires that both parties are online at the same time.
-  - If the nonce is decided by the server, the server could collude in order to replay, but not fully cheat. This requires some trust in the server, but in that case, it provides zero-knowledgeness. It can also offer either escrow (the server gets to see the signatures) or privacy from the server (the server does not get to see the signatures/attributes, but hence cannot do escrow).
-
-  From the schemes based on attribute-based signatures, the latter seems most promising. However, some general issues with attribute-based signatures need to be kept in mind: usability of creating a signature on a nonce is not ideal. At best, the users would see something like: "I disclose my attributes for DIYivi session 1234567890". Additionally, while it's possible to hide the attributes from the _DIYivi_ server, the _Yivi_ server always still sees the attributes and the message to be signed.
-
-### Making a choice
-
-In the end, it seems that we have to make a choice between a few rough options:
-
-1. Requiring complete trust in the server, allowing for escrow. We can achieve properties 1 and 2, but not 3 and 4.
-2. Requiring less trust in the server, less usability due to the use of Yivi _signatures_ instead of _disclosures_, with escrow. We can achieve properties 1, 2, and 3 (to some extent), at a cost of usability.
-3. Requiring the least trust in the server, but less usability and no escrow. We can achieve properties 1, 3 and 4, but not 2.
-
-All of these options share the limitation that whichever Yivi server is involved in the disclosure or signature sessions will always see the attributes of the parties. This means that, if we make a design that is theoretically privacy-preserving against the _DIYivi_ server, this is hardly relevant if the Yivi server is hosted by the same party as the _DIYivi_ server. Similarly, the involved _Yivi_ server (either in the disclosure sessions or the signature _verification_ sessions) are always in a position to cheat (although _signature verification_ can theoretically be implemented directly in the users' clients).
-
-There are also further limitations to privacy such as possible linkability of participants based on timing, IP addresses, or browser fingerprints, which we have not yet even considered.
-
-Considering the above, it seems that the best option for DIYivi would be to focus on usability, and require trust in the server.
-This is not an unreasonable assumption, for several reasons:
-
-- The Yivi infrastructure already needs to be trusted. As DIYivi is being built for the founders of Yivi, it is reasonable to assume that a production version of DIYivi could be hosted by the same party as Yivi itself.
-- The frontend of DIYivi will simply be a webapp. This means that, unless users actually inspect the source code, they will trust the server anyway. Even in a protocol where the server cannot cheat, a very simple attack would be for the server to provide a backdoored frontend.
-- The involved _Yivi_ server(s) are always in a position to cheat (unless signature verification is implemented directly in the client) and eavesdrop. It is _possible_ to implement a system where decentralized Yivi servers are used such that they are not hosted by the same organization that hosts the DIYivi server, but this is not _realistic_ for the purpose and scope of DIYivi.
-
-By opting for an approach that trusts the DIYivi backend server, we get significant usability benefits, and it becomes straightforward to implement features like escrow. Some other features that could be added are:
-
-- Expanding to more than two participants:
-  - The case where Alice, Bob and Charlie want a three-way exchange (with escrow).
-  - The case where Alice wants multiple two-way exchanges for the same attribute set, without Alice having to do a disclosure for each participant.
-- The option to enable or disable escrow: the initiator (Alice) can choose whether Bob can see Alice's attributes already before disclosing his own.
-- We may require that the exchange of attributes is symmetric (both parties disclose for the same ConDisCon).
-
-  - Optionally, the ConDisCon could have optional parts, and the server can arrange that both parties only see the intersection of the parts that they disclosed.
-
-    For example, consider if there are attributes A and B, where A is mandatory and B is optional. Alice discloses A and B, but Bob only discloses A. We can decide that in that case, Bob only sees Alice's A, and not Alice's B.
-
-## An initial design
-
-Below is a sequence diagram of a successful exchange between Alice and Bob, with the server acting as escrow.
-
-```mermaid
-
-sequenceDiagram
-    participant yivi as Yivi server
-    participant A as Alice
-    participant B as Bob
-    participant server as Server
-
-    A ->>+ yivi: Disclose
-    yivi ->>- A: Result JWT A
-    A ->>+ server: JWT A
-
-    note left of server: Server verifies JWT A
-
-    server ->>- A: Session ID
-    A ->> B: URL with session ID
-    B ->>+ server: GET session ID
-    server ->>- B: Requested attributes
-
-    B ->>+ yivi: Disclose
-    yivi ->>- B: Result JWT B
-    B ->>+ server: Result JWT B
-
-    note left of server: Server verifies JWT B
-
-    server ->> A: Attributes B
-    server ->>- B: Attributes A
-
-```
-
-It is trivial to extend this to more than two participants, or to have the server enforce rules about the exchange.
-
-### Still replayable
-
-**It is still possible for Bob to be a MitM using a replay attack!**
-
-1. Alice discloses her attributes to the server.
-2. Alice sends a URL with a session ID to Bob.
-3. Bob forwards this URL to Charlie.
-4. Charlie thinks that the URL is from Bob, and discloses his attributes to the server. Alice now thinks that Bob is Charlie, and Charlie now thinks that Bob is Alice.
-
-I believe that the only possible mitigation is to force users to include an attribute about their 'trusted' channel in the disclosure.
-
-Let us consider the scenario where Alice wants to exchange with Bob, who she communicates with over WhattsApp (or text message, or anything linked directly to a phone number).
-
-- When starting the exchange, the frontend asks for something unique she knows **for sure** about the recipient. That has to be directly related to the 'secure' channel they're communicating over, such as phone number or email address.
-- Alice provides Bob's phone number.
-- When Bob receives the URL, he has to proof that he has that phone number, as well as whatever other attributes are being exchanged.
-- If, instead, Charlie receives the URL (because Bob tries to be a MitM), Charlie cannot prove that he has Bob's phone number.
-
-It might be fair to also require Alice to include her own phone number, although it's technically not necessary for the initiator to do so for preventing the attack.
-
-This modification hurts usability a little bit, as Alice needs to put in the effort to enter the required phone number. Alternatively, it might be fine to not specify the phone number value, but just require _both parties_ (otherwise Bob can still convince Charlie that he is Alice) to disclose it, and inform the user that they should check that it is correct. That's a bit less secure as users are not unlikely to just skip that final crucial step. But it may be the only option when supporting a use case with more than a few participants.
-
-The modification does not affect the protocol in the diagram above, as it's only a step in the frontend.
-
-## More detail
-
-Let's now go through the design step by step. We consider initiator Alice, who wants to exchange 'name' attributes with Bob.
-
-1. Alice opens DIYivi.
-2. Alice starts a new exchange.
-3. The frontend asks Alice for something she knows for sure about whoever she wants to exchange with. Alice chooses 'phone number' and is then prompted to enter Bob's phone number. She enters it.
-4. Alice is presented with a few options of attributes to exchange. She selects 'name'.
-5. The frontend now shows a button to start a disclosure session, for attributes 'name' and 'phone number'.
-6. Alice performs the disclosure session, using the Yivi app.
-7. Alice is redirected back to the DIYivi frontend.
-8. The frontend now presents Alice with a URL that she should send to Bob. There is a copy button, and a share button that makes it easy to send the URL over common channels like WhatsApp or email.
-
-   Optionally, the best option can be provided based on the 'known' attribute that was selected in step 3. For example, if Alice selected 'phone number' we could present links/buttons that send a message specifically to that phone number, to make it harder for Alice to make a mistake. The same could be done for an email address (with a mailto link), and probably for a few other channels. But this is all optional frontend stuff.
-
-9. Alice sends the URL to Bob.
-10. Bob receives the URL, and clicks on it.
-11. Bob ends up on the DIYivi frontend.
-
-    Optionally, he can already be presented with Alice's phone number (the attribute that Alice said they know about each other already). This allows Bob to already verify that the URL comes from Alice, and Alice did not forward it from someone else. This is not necessary for security, as the forwarding attack is already prevented by the fact that Bob needs to disclose the right phone number to proceed. But showing it _before_ trying to do the disclosure is probably better for usability: we can add an explanation about it, rather than relying on the inability of a potential victim (Charlie, if Bob forwarded Alice's message to Charlie) to perform the phone number disclosure.
-
-12. Bob is prompted to disclose his 'name' and a specific 'phone number'. He needs to have the phone number that Alice entered in step 3.
-13. Bob is redirected to the DIYivi frontend, and is shown Alice's name (and phone number).
-14. Alice can now see Bob's name as well.
-
-    There should probably be a mechanism to notify Alice that the exchange is complete. For example through email or a push notification. But initially, simply polling while Alice has the frontend open is fine.
-
-### State on the backend
-
-We need to store some state on the backend.
-
-- The selection of attributes to exchange, the known attribute of Bob, and the disclosed attributes of Alice, need to be stored.
-- Then, the result of Bob's disclosure needs to be stored until Alice retrieves it.
-
-### WIP: API endpoints for each step
-
-The following describes the API calls that are made in a successful 1-to-1 exchange between Alice and Bob.
+The protocal that we have decided to implement in DIYivi is as follows:
 
 ```mermaid
 sequenceDiagram
     participant yivi as Yivi server
     participant A as Alice
     participant B as Bob
-    participant server as Server
+    participant server as diyivi server
 
     A ->>+ server: POST /exchanges/create/ (Configuration of requested attributes)
     server ->>- A: Exchange ID, secret, disclosure request JWT A
@@ -204,60 +79,62 @@ sequenceDiagram
 
     A ->>+ server: GET /exchanges/:exchange_id/result/ (secret)
     server ->>- A: Disclosed attributes of Bob
-
 ```
 
-This design works exactly the same in a 1-to-many setting where Alice performs
-1-to-1 exchanges with multiple recipients, who all receive the same exchange ID.
+Here, the DIYivi backend needs to be fully trusted: it can see all data, and could cheat.
+This is not ideal, but is a trade-off based on the following considerations:
 
-In a many-to-many setting, where Alice begins a group, such that everyone sees everyone's attributes,
-the only small difference is that, after a recipient responds, the server would have to also give the
-'secret' (which normally is only given to the initiator) to Bob. Then, Bob can also access the
-result of the exchange with 'GET /exchanges/:exchange_id/result/'.
+1. It would be nice for privacy and security if there's no server that sees personal data.
+2. However, Yivi requires there to be at least an `irma server` that sees the attributes,
+   so, practically speaking, there is always a server that sees the attributes. Whether that
+   is only a normal `irma server` (hosted by DIYivi) or also an additional DIYivi backend makes
+   little difference.
+3. A nice way to ensure fairness between the two involved parties is to require a 'symmetrical'
+   exchange, where both parties disclose the same attributes. To enforce this, a third party is
+   needed that verifies that _both_ parties have disclosed attributes, before showing these attributes
+   to the other party.
+4. To verify a Yivi disclosure, the `irma server` originally used for the disclosure needs to be trusted.
+   This server not only gets to see the attributes (consideration 2), but it can also cheat.
+   Yivi currently does not support a way to independently verify a disclosure after the fact.
+
+By opting for an approach that trusts the DIYivi backend server, we get significant usability benefits,
+a simple protocol and code (no need to do intricate cryptographic tricks to communicate through a
+server without it being able to read data or cheat), and it becomes straightforward to implement
+features like 'escrow' (gelijk oversteken) of the attributes, so that no user can cheat to get data
+from another user without also disclosing their own data.
 
 
+## Protecting agains man-in-the-middle attacks
 
-## Background
+The protocol as described above is vulnerable to a kind of man-in-the-middle attack.
+Consider a case where Alice initiates an exchange, and sends the link to Eve.
+Then, without responding to the exchange, Eve sends the link to Charlie.
+Charlie could be convinced that the link was sent by Alice (it was actually Eve) and
+Alice could be convinced that the person she sent it to (Eve) is Charlie.
 
-In the past, some [research](https://openresearch.amsterdam/nl/page/104367/rijvaardigheid-aantonen-via-irma-op-je-mobiel-peer-to-peer)
-has been done into the usability of a system where law enforcement officers can perform
-peer-to-peer exchanges of a driver's license credential. There, a frontend to request
-such attributes would be included in the Yivi app, where a police officer would show a
-QR code to a civilian, which, when scanned from the Yivi app, would:
+With the initial requirement of sending only a single message over the channel between the two parties,
+there is not much we can do about this (there's no good way to do e.g. a key exchange).
+Instead, we can mitigate this vulnerability with a more practical trick:
 
-- Present the officer's badge number (and optionally other contact information) to the civilian.
-- Request the attributes of the civilian, such as name, date of birth, and driver's license type and date,
-  as configured by the officer.
-- Indicate that the officer is legally allowed to request these attributes.
+- The initiator (Alice) is asked to disclose an attribute that the recipient (e.g. Charlie) can check
+  against whatever channel the link was sent over. For example, if the two communicate over e-mail,
+  Alice would disclose her e-mail address. When Charlie receives the link, they're asked to check that
+  it was indeed sent from Alice's address. The same can be done with a phone number if the two
+  communicate over SMS, WhatsApp, Signal, etc.
 
-This system was only a frontend prototype, and has not actually been implemented. It would
-require at least a backend IRMA server, and significant functionality in the Yivi app.
+By explicitly requiring the initiator to disclose such an attribute, and prompting the recipient very
+clearly to check it, we can protect against this attack pretty well, without hurting usability too much.
 
-There are clear similarities between this idea, and DIYivi.
+An additional mitigation is also possible, but would have more impact on usability, so it is not applied:
 
-### Implementation based on DIYivi.
+- Alice could **additionally** be asked to specify the expected vale of an attribute for a recipient.
+  For example, Alice indicates that the exchange can only be answered by someone with a specific
+  e-mail address (charlie@example.com).
 
-DIYivi is a more general tool that, among other things, can implement something like this.
+  However, this is only an additional measure: it does not by itself prevent replay where *Charlie* is the victim.
 
-While including this functionality in the Yivi app itself would be the most user-friendly,
-it seems unlikely that such a specific feature would be included in the Yivi app itself.
-Furthermore, one of the conclusions of the research is that, for the law enforcement
-officer's side, it would need to also be integrated with the police's backend systems,
-which clearly should not be part of the Yivi app.
-
-However, the main features of the research could be implemented with a backend protocol
-as planned for DIYivi. That is:
-
-- The officer starts an exchange, with the police credentials as 'public initiator attributes'.
-- The officer specifies the attributes they want to receive from the civilian.
-- The DIYivi backend verifies that the officer is allowed to request these attributes,
-  based on the police credentials (possibly the same as the 'public initiator attributes').
-
-Of course, this has some disadvantages compared to a solution integrated in the Yivi app.
-The civilian user is shown the attributes on a webpage, rather than in the Yivi app.
-So it is likely that this will come across (and of course, is) less trustworthy.
-
-### UX evaluation
-
-The research that was done contains some elements that are very relevant to DIYivi.
-We can take its results into account when designing parts of DIYivi's UI.
+  It also hurts usability because it's an additional step for Alice (who also needs to get it precisely right),
+  and it does not work well in the potential future feature of a _1-to-many_ or _many-to-many_ exchange,
+  where Alice makes a single exchange link that she can send to many people to either perform individual
+  exchanges with each of those, or a single exchange with the group (where they all get to see multiple
+  people's responses).
